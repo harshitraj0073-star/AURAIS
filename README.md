@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NEXORA — Sentient Aware
 
-## Getting Started
+A calm, ambient mental-health & emotional-resilience assistant. Dark glass UI, living background engines, breathing exercises, empathetic chat, multi-channel distress monitoring, and role-based dashboards for survivors, clinical staff, and governance.
 
-First, run the development server:
+> 🌍 **Live**: <https://harshitraj0073-star.github.io/nextrails-mains/>
+>
+> 🖥️ **Local**: [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🚀 Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# from the project root
+python3 -m http.server 3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open **<http://localhost:3000>**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The page pulls Tailwind CSS and Chart.js from CDNs, so it needs internet.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ✨ Highlights
 
-## Learn More
+- **Sentient Ambient Engine** — switchable animated backgrounds in the *Ambient Studio* (bottom-left button): Sentient Aura, Neural Synapse, Fluid Smoke, Aurora Borealis, Dot Matrix, Noise Gradient, Deep Field, **Matrix Rain**, **Retro Neon Grid**, **Warp Drive** — plus Light Rays, Cursor Orb & Ticking Alerts extras.
+- **Chromatic themes** — Cyber Cyan, Neural Violet, Obsidian Emerald, Solar Amber, Deep Crimson.
+- **Breathing ripples** — sonar rings synced to a 4-7-8 breathing cycle with per-phase color, phase chips, and a confetti celebration after 3 full cycles.
+- **Aurora title + word rotate** — flowing gradient on the "NEXORA" wordmark, cycling *Breathe · Reflect · Connect · Heal*.
+- **Border-beam role cards** — luminous borders + cursor glare on the Survivor / Clinical / Governance amphitheater.
+- **AI companions** — NEX empathetic chat with crisis detection, multi-language, 24/7 helpline access.
+- **Multi-channel monitoring (SIH-26094)** — Web Portal, Chatbot, SMS, IVRS, Mobile App & Helpline feed a longitudinal distress timeline.
+- **Analytics & governance** — distress trend charts, radar diagnostics, sankey flows, district resilience, compensation treasury.
 
-To learn more about Next.js, take a look at the following resources:
+## 🧭 Sections
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Mode | Access | Purpose |
+|------|--------|---------|
+| Survivor / Patient | `loginAsRole('victim')` | Check-in, breathing, chat, profile |
+| Clinical / Counselor | `loginAsRole('counselor')` | Case queue, AI triage, intervention, diagnostics |
+| Governance / Admin | `loginAsRole('admin')` | Command center, telemetry, treasury, policy |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠 Tech
 
-## Deploy on Vercel
+Static PWA — plain **HTML / CSS / JavaScript** + **Tailwind CDN** + **Chart.js CDN** + Canvas animation engines, with a service worker and web manifest.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Settings are remembered in `localStorage` (language, ambient engine, theme, opacity).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📦 Repo layout
+
+```
+nextrails-mains/
+├── index.html         # main app (NEXORA — Sentient Aware)
+├── script.js          # orchestration + ambient canvas engines
+├── style.css          # design system + animations
+├── service-worker.js  # PWA offline shell
+├── manifest.webmanifest
+└── NEXORA-…-main/     # nested React (Vite) NEXORA project
+```
+
+---
+
+Made with care for safety and calm.
