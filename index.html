@@ -75,6 +75,18 @@
                             <span class="text-sm">🌌</span>
                             <span class="text-xs">Deep Field</span>
                         </button>
+                        <button onclick="setAmbientEngine('matrix-rain')" class="engine-btn" data-bg-engine="matrix-rain" data-engine="matrix-rain">
+                            <span class="text-sm">💊</span>
+                            <span class="text-xs">Matrix Rain</span>
+                        </button>
+                        <button onclick="setAmbientEngine('retro-neon')" class="engine-btn" data-bg-engine="retro-neon" data-engine="retro-neon">
+                            <span class="text-sm">🟣</span>
+                            <span class="text-xs">Retro Neon Grid</span>
+                        </button>
+                        <button onclick="setAmbientEngine('warp-drive')" class="engine-btn" data-bg-engine="warp-drive" data-engine="warp-drive">
+                            <span class="text-sm">🌀</span>
+                            <span class="text-xs">Warp Drive</span>
+                        </button>
                     </div>
                 </div>
 
@@ -133,6 +145,23 @@
                         <span class="text-[10px] text-slate-400">reduce animations on budget devices</span>
                     </button>
                 </div>
+
+                <!-- Ambient Extras -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ambient Extras</label>
+                    <label class="ambient-toggle">
+                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>✨</span> Light Rays</span>
+                        <input type="checkbox" id="toggle-light-rays" onchange="toggleAmbientExtra('light-rays', this.checked)">
+                    </label>
+                    <label class="ambient-toggle">
+                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🔮</span> Cursor Orb</span>
+                        <input type="checkbox" id="toggle-cursor-orb" onchange="toggleAmbientExtra('cursor-orb', this.checked)">
+                    </label>
+                    <label class="ambient-toggle">
+                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>📡</span> Ticking Alerts</span>
+                        <input type="checkbox" id="toggle-ticking" onchange="toggleAmbientExtra('ticking', this.checked)">
+                    </label>
+                </div>
             </div>
         </div>
     </div>
@@ -163,6 +192,14 @@
 
     <!-- Cursor Spotlight -->
     <div id="cursor-spotlight" class="cursor-spotlight"></div>
+
+    <!-- Global Ambient Extras -->
+    <div id="noise-overlay" class="noise-overlay"></div>
+    <div id="light-rays-overlay" class="light-rays hidden"></div>
+    <div id="cursor-orb-el" class="cursor-orb hidden"></div>
+    <div id="retro-grid-overlay" class="retro-grid-overlay hidden"></div>
+    <div id="warp-overlay" class="warp-overlay hidden"></div>
+    <div id="matrix-overlay" class="matrix-overlay hidden"></div>
 
     <!-- ===================================================================== -->
     <!-- SENTIENT NAVIGATION -->
@@ -292,13 +329,19 @@
                 </div>
 
                 <!-- Main Title -->
-                <h1 id="main-title" class="text-display" style="animation: fade-in-up 1.5s ease-out 0.5s both;">
+                <h1 id="main-title" class="text-display aurora-text" style="animation: fade-in-up 1.5s ease-out 0.5s both;">
                     NEXORA
                 </h1>
 
                 <!-- Subtitle -->
-                <p id="main-subtitle" class="text-display-sm text-cyan-300/80" style="animation: fade-in-up 1.5s ease-out 1s both;" data-i18n="intro_subtitle">
-                    I'm Here.
+                <p id="main-subtitle" class="text-display-sm text-cyan-300/80 flex items-center justify-center gap-3 flex-wrap" style="animation: fade-in-up 1.5s ease-out 1s both;">
+                    <span data-i18n="intro_subtitle">I'm Here.</span>
+                    <span class="word-rotate-wrap text-cyan-300" id="word-rotate" aria-label="Breathe Reflect Connect Heal">
+                        <span class="word-rotate-item active">Breathe</span>
+                        <span class="word-rotate-item">Reflect</span>
+                        <span class="word-rotate-item">Connect</span>
+                        <span class="word-rotate-item">Heal</span>
+                    </span>
                 </p>
 
                 <!-- Description -->
@@ -358,7 +401,7 @@
             <div class="role-arena" id="role-arena">
 
                 <!-- SURVIVOR PILLAR — Patient Mode (Empathy & Safety) -->
-                <div class="sentient-card sentient-card-interactive role-pillar role-pillar-survivor group animate-entrance" data-arena-tilt onclick="loginAsRole('victim')">
+                <div class="sentient-card sentient-card-interactive role-pillar role-pillar-survivor group animate-entrance border-beam-wrap glare-hover btn-pulse" data-arena-tilt onclick="loginAsRole('victim')">
                     <!-- 3D floating icon layer -->
                     <div class="role-layer-icon w-16 h-16 rounded-2xl bg-mint-dim border border-mint-400/20 flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
                         🌿
@@ -407,7 +450,7 @@
                 </div>
 
                 <!-- CLINICAL PILLAR — Counselor Mode (Intelligence & Diagnostics) -->
-                <div class="sentient-card sentient-card-interactive role-pillar role-pillar-clinical group animate-entrance" data-arena-tilt onclick="loginAsRole('counselor')">
+                <div class="sentient-card sentient-card-interactive role-pillar role-pillar-clinical group animate-entrance border-beam-wrap glare-hover" data-arena-tilt onclick="loginAsRole('counselor')">
                     <!-- 3D floating icon layer -->
                     <div class="role-layer-icon w-16 h-16 rounded-2xl bg-cyan-dim border border-cyan-400/20 flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
                         🩺
@@ -456,7 +499,7 @@
                 </div>
 
                 <!-- GOVERNANCE PILLAR — Admin Mode (Policy & Telemetry) -->
-                <div class="sentient-card sentient-card-interactive role-pillar role-pillar-governance group animate-entrance" data-arena-tilt onclick="loginAsRole('admin')">
+                <div class="sentient-card sentient-card-interactive role-pillar role-pillar-governance group animate-entrance border-beam-wrap glare-hover" data-arena-tilt onclick="loginAsRole('admin')">
                     <!-- 3D floating icon layer -->
                     <div class="role-layer-icon w-16 h-16 rounded-2xl bg-violet-dim border border-violet-400/20 flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
                         🏛️
@@ -675,7 +718,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-mint btn-lg w-full sm:w-auto">
+                    <button type="submit" class="btn btn-mint btn-lg w-full sm:w-auto btn-shimmer">
                         <span data-i18n="btn_begin_checkin">Begin Daily Check-In</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -885,22 +928,22 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="sentient-card p-5">
                         <p class="text-micro text-slate-400 mb-2" data-i18n="kpi_active_patients">Active Patients</p>
-                        <p id="metric-total" class="text-stat text-3xl">4</p>
+                        <p id="metric-total" class="text-stat text-3xl" data-count-up>4</p>
                         <p class="text-sm text-cyan-400 mt-1" data-i18n="kpi_under_care">Under Care</p>
                     </div>
                     <div class="sentient-card p-5 border-coral-400/20 bg-coral-dim/10">
                         <p class="text-micro text-slate-400 mb-2" data-i18n="kpi_high_risk">High Risk</p>
-                        <p id="metric-high" class="text-stat text-3xl text-coral-400">2</p>
+                        <p id="metric-high" class="text-stat text-3xl text-coral-400" data-count-up>2</p>
                         <p class="text-sm text-coral-300 mt-1" data-i18n="kpi_need_attention">Need Attention</p>
                     </div>
                     <div class="sentient-card p-5 border-amber-400/20 bg-amber-dim/10">
                         <p class="text-micro text-slate-400 mb-2" data-i18n="kpi_followup">Follow-up</p>
-                        <p id="metric-moderate" class="text-stat text-3xl text-amber-400">1</p>
+                        <p id="metric-moderate" class="text-stat text-3xl text-amber-400" data-count-up>1</p>
                         <p class="text-sm text-amber-300 mt-1" data-i18n="kpi_court_delay">Court Delay</p>
                     </div>
                     <div class="sentient-card p-5 border-mint-400/20 bg-mint-dim/10">
                         <p class="text-micro text-slate-400 mb-2" data-i18n="kpi_interventions">Interventions</p>
-                        <p id="metric-interventions" class="text-stat text-3xl text-mint-400">3</p>
+                        <p id="metric-interventions" class="text-stat text-3xl text-mint-400" data-count-up>3</p>
                         <p class="text-sm text-mint-300 mt-1" data-i18n="kpi_completed">Completed</p>
                     </div>
                 </div>
@@ -1626,7 +1669,14 @@
                 <p class="text-slate-400 text-sm" data-i18n="breathe_desc">Follow the rhythm to calm your mind</p>
             </div>
 
-            <div class="breathing-chamber py-12">
+            <div class="breathing-chamber py-12 relative">
+                <!-- Breathing Ripple (sonar) -->
+                <div class="breathing-ripple-container" id="breathing-ripples">
+                    <div class="ripple-ring" id="ripple-1"></div>
+                    <div class="ripple-ring" id="ripple-2"></div>
+                    <div class="ripple-ring" id="ripple-3"></div>
+                    <div class="ripple-ring" id="ripple-4"></div>
+                </div>
                 <div class="breathing-core">
                     <canvas id="breathe-sphere" class="breathe-sphere"></canvas>
                     <div class="breathing-ring"></div>
@@ -1819,7 +1869,7 @@
                             <circle id="stress-modal-radial-circle" cx="50" cy="50" r="40" stroke="var(--coral-400)" stroke-width="8" stroke-dasharray="251" stroke-dashoffset="75" stroke-linecap="round" fill="none"/>
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span id="stress-modal-score" class="text-2xl font-bold text-white">75%</span>
+                            <span id="stress-modal-score" class="text-2xl font-bold text-white" data-count-up>75%</span>
                             <span class="text-[10px] text-slate-400">DDS</span>
                         </div>
                     </div>

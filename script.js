@@ -3039,9 +3039,11 @@ function switchView(viewName) {
             if (el) {
                 el.classList.remove('hidden');
                 el.classList.add('flex');
-                el.classList.remove('view-fade-slide');
+                el.classList.remove('view-fade-slide', 'blur-fade-active');
                 void el.offsetWidth;
-                el.classList.add('view-fade-slide');
+                el.classList.add('view-fade-slide', 'blur-fade-active');
+                // Auto-remove so the class can re-trigger next switch
+                setTimeout(() => { el.classList.remove('blur-fade-active'); }, 400);
             }
         } else {
             if (el) {
@@ -8885,30 +8887,66 @@ function toggleBreathingModal() {
     }
 }
 
+let breatheCycleCount = 0;
+let breatheRippleTimer = null;
+
 function startBreathingCycle() {
     isBreatheActive = true;
+    breatheCycleCount = 0;
     const stateEl = document.getElementById('breathe-state');
     const timerEl = document.getElementById('breathe-timer');
     const instructEl = document.getElementById('breathe-instruction');
-    
+
     const cycle = [
         { state: "Inhale", count: 4, text: "Gently fill your lungs with fresh calm air..." },
-        { state: "Hold", count: 4, text: "Gently hold your breath... you are safe..." },
-        { state: "Exhale", count: 4, text: "Slowly release all worry and tension..." }
+        { state: "Hold", count: 7, text: "Gently hold your breath... you are safe..." },
+        { state: "Exhale", count: 8, text: "Slowly release all worry and tension..." }
     ];
     let stepIdx = 0;
     let secondsLeft = cycle[stepIdx].count;
+
+    // Sync the sonar ripple rings to the breathing rhythm
+    function restartRipples() {
+        const container = document.getElementById('breathing-ripples');
+        if (!container) return;
+        container.querySelectorAll('.ripple-ring').forEach(ring => {
+            ring.style.animation = 'none';
+            void ring.offsetWidth;
+            ring.style.animation = '';
+        });
+    }
 
     function tick() {
         if (!isBreatheActive) return;
         stateEl.innerText = cycle[stepIdx].state;
         timerEl.innerText = `${secondsLeft}s`;
         instructEl.innerText = `"${cycle[stepIdx].text}"`;
+        // Reflect the active phase in the phase chips
+        document.querySelectorAll('.breathing-phase').forEach(p => p.classList.remove('active'));
+        const phaseId = stepIdx === 0 ? 'phase-inhale' : stepIdx === 1 ? 'phase-hold' : 'phase-exhale';
+        const phaseEl = document.getElementById(phaseId);
+        if (phaseEl) phaseEl.classList.add('active');
 
         secondsLeft--;
         if (secondsLeft < 0) {
             stepIdx = (stepIdx + 1) % cycle.length;
             secondsLeft = cycle[stepIdx].count;
+            // New phase → breathe the ripples back to life
+            restartRipples();
+            // Tint the glow toward the current phase color
+            const inner = document.getElementById('breathing-inner');
+            if (inner) {
+                if (stepIdx === 0) inner.style.background = 'linear-gradient(to bottom right, #34d399, #06b6d4)';
+                else if (stepIdx === 1) inner.style.background = 'linear-gradient(to bottom right, #a5f3fc, #38bdf8)';
+                else inner.style.background = 'linear-gradient(to bottom right, #a7f3d0, #0ea5e9)';
+            }
+        } else if (stepIdx === 0 && secondsLeft === 3) {
+            // Just after a full cycle completes, mark a tiny celebration.
+            breatheCycleCount++;
+            if (breatheCycleCount === 3) {
+                fireConfetti(window.innerWidth / 2, window.innerHeight / 2);
+                showToast('🌿 Three full cycles — lovely work. Keep breathing.', 'success');
+            }
         }
     }
     tick();
@@ -11202,6 +11240,15 @@ window.AmbientController = {
       case 'noise-gradient':
         this.runNoiseGradient();
         break;
+      case 'matrix-rain':
+        this.runMatrixRain();
+        break;
+      case 'retro-neon':
+        this.runRetroNeon();
+        break;
+      case 'warp-drive':
+        this.runWarpDrive();
+        break;
       default:
         this.runSentientAura();
     }
@@ -11689,6 +11736,151 @@ window.AmbientController = {
       this.animationFrameId = requestAnimationFrame(loop);
     };
     this.animationFrameId = requestAnimationFrame(loop);
+  },
+
+  // --------------------------------------------------------------------------
+  // ENGINE 7: MATRIX RAIN
+  // Classic digital rain in the active chromatic theme (calm mode on by default)
+  // --------------------------------------------------------------------------
+  runMatrixRain() {
+    if (!this.canvas || !this.ctx) return;
+    const ctx = this.ctx;
+    const theme = this.getTheme();
+    this.canvas.style.filter = 'none';
+    const MONO = (
+      ['#00ff41', '#00b833', '#04d98b', '#0aff9d'].includes(theme.primary) ?
+      ['rgba(0,255,65,0.9)', 'rgba(0,184,51,0.7)', 'rgba(4,217,139,0.6)', '#0aff9d'] :
+      [theme.primary, theme.palette[0] || theme.primary, theme.palette[1] || theme.glow]
+    );
+
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    const fontSize = 16;
+    const cols = Math.floor(w / fontSize);
+    const drops = new Array(cols).fill(0).map(() => Math.floor(Math.random() * -40));
+
+    const drawRain = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < cols; i++) {
+        const text = String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96));
+        const color = MONO[Math.floor(Math.random() * MONO.length)];
+        if (drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0;
+        ctx.fillStyle = color;
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        drops[i]++;
+      }
+    };
+    const loop = () => {
+      drawRain();
+      this.animationFrameId = requestAnimationFrame(loop);
+    };
+    loop();
+  },
+
+  // --------------------------------------------------------------------------
+  // ENGINE 8: RETRO NEON GRID
+  // Synthwave horizon grid pushed into 3D perspective with glow
+  // --------------------------------------------------------------------------
+  runRetroNeon() {
+    if (!this.canvas || !this.ctx) return;
+    const ctx = this.ctx;
+    this.canvas.style.filter = 'none';
+    const theme = this.getTheme();
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+
+    const loop = () => {
+      const time = performance.now() / 1000;
+      ctx.clearRect(0, 0, w, h);
+      const horizon = h * 0.62;
+      // Sky gradient
+      const sky = ctx.createLinearGradient(w / 2, horizon, w / 2, 0);
+      sky.addColorStop(0, theme.glow.replace('0.45', '0.30'));
+      sky.addColorStop(1, 'rgba(2,3,10,0.0)');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, horizon);
+      // Sun
+      ctx.save();
+      const sunR = Math.min(w, h) * 0.12;
+      const sunGrad = ctx.createLinearGradient(w / 2, horizon, w / 2, horizon - sunR);
+      sunGrad.addColorStop(0, theme.primary);
+      sunGrad.addColorStop(1, theme.primary + '00');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(w / 2, horizon, sunR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      // Horizontal neon lines sliding toward horizon
+      ctx.strokeStyle = theme.primary;
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < 16; i++) {
+        const z = ((i + time * 0.6) % 16) / 16;
+        const y = horizon + Math.pow(z, 2.2) * (h - horizon);
+        const spread = z * w * 0.55;
+        ctx.globalAlpha = z * 0.5 + 0.1;
+        ctx.beginPath();
+        ctx.moveTo(w / 2 - spread, y);
+        ctx.lineTo(w / 2 + spread, y);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      // Perspective grid
+      ctx.strokeStyle = theme.primary;
+      ctx.globalAlpha = 0.25;
+      for (let i = -12; i <= 12; i++) {
+        ctx.beginPath();
+        ctx.moveTo(w / 2 + i * 22, horizon);
+        ctx.lineTo(w / 2 + i * 320, h);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      this.animationFrameId = requestAnimationFrame(loop);
+    };
+    loop();
+  },
+
+  // --------------------------------------------------------------------------
+  // ENGINE 9: WARP DRIVE
+  // Fluid conic swirl with drifting neon streaks (starship warp / psychedelic)
+  // --------------------------------------------------------------------------
+  runWarpDrive() {
+    if (!this.canvas || !this.ctx) return;
+    const ctx = this.ctx;
+    this.canvas.style.filter = 'blur(30px)';
+    const theme = this.getTheme();
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+
+    const loop = () => {
+      const time = performance.now() / 3000;
+      ctx.clearRect(0, 0, w, h);
+      // Rotating conic gradient center
+      const cx = w / 2;
+      const cy = h / 2;
+      const g = ctx.createConicGradient ? ctx.createConicGradient(time, cx, cy) : null;
+      if (g) {
+        g.addColorStop(0, theme.palette[0]);
+        g.addColorStop(0.25, ((w % 40) === 0) ? theme.palette[1] : theme.palette[1]);
+        g.addColorStop(0.5, theme.palette[2] || theme.palette[1]);
+        g.addColorStop(0.75, theme.palette[3] || theme.palette[0]);
+        g.addColorStop(1, theme.palette[0]);
+        ctx.fillStyle = g;
+        ctx.globalAlpha = 0.55;
+        ctx.fillRect(0, 0, w, h);
+      } else {
+        const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.7);
+        rg.addColorStop(0, theme.palette[0]);
+        rg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = rg;
+        ctx.fillRect(0, 0, w, h);
+      }
+      ctx.globalAlpha = 1;
+      this.animationFrameId = requestAnimationFrame(loop);
+    };
+    loop();
   }
 };
 
@@ -12230,3 +12422,268 @@ window.NexArena = NexArena;
     return r;
   };
 })();
+
+// ============================================================================
+// ENHANCEMENT PACK — NEW UI FEATURES
+// Words, confetti, counters, ambient extras, orb mood, typing, ticking alerts
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// CONFETTI BURST — positive-reinforcement moment (streaks, breathing completion)
+// ---------------------------------------------------------------------------
+function fireConfetti(x, y) {
+    if (typeof _motionAllowed === 'function' && !_motionAllowed()) return;
+    const colors = ['#06b6d4', '#a855f7', '#f43f5e', '#f59e0b', '#10b981', '#ffffff'];
+    for (let i = 0; i < 70; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = (x || window.innerWidth / 2) + 'px';
+        piece.style.top = (y || window.innerHeight / 2) + 'px';
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.setProperty('--dx', (Math.random() - 0.5) * 300 + 'px');
+        piece.style.setProperty('--dy', (Math.random() * 220 + 80) + 'px');
+        piece.style.animationDelay = (Math.random() * 0.25) + 's';
+        document.body.appendChild(piece);
+        setTimeout(() => { if (piece.parentNode) piece.parentNode.removeChild(piece); }, 2600);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// WORD ROTATE — cycles the subtitle words (Breathe → Reflect → Connect → Heal)
+// ---------------------------------------------------------------------------
+let _wordRotateTimer = null;
+function initWordRotate() {
+    clearInterval(_wordRotateTimer);
+    const wrap = document.getElementById('word-rotate');
+    if (!wrap) return;
+    const items = Array.from(wrap.querySelectorAll('.word-rotate-item'));
+    if (items.length < 2) return;
+    let idx = 0;
+    _wordRotateTimer = setInterval(() => {
+        const prev = items[idx];
+        idx = (idx + 1) % items.length;
+        const next = items[idx];
+        if (!prev || !next) return;
+        prev.classList.remove('active');
+        prev.classList.add('exit');
+        next.classList.add('active');
+        setTimeout(() => prev.classList.remove('exit'), 400);
+    }, 3600);
+}
+
+// ---------------------------------------------------------------------------
+// NUMBER TICKERS — count-up animation on metric values marked [data-count-up]
+// ---------------------------------------------------------------------------
+function animateCountUp(el, target, opts) {
+    if (!el) return;
+    // Never overlap two animations on the same element
+    if (el.dataset._animating === '1') { el.dataset._last = target; return; }
+    opts = opts || {};
+    const suffix = opts.suffix || el.getAttribute('data-suffix') || '';
+    const dur = opts.duration || 900;
+    const start = opts.from || 0;
+    const t0 = performance.now();
+    el.dataset._animating = '1';
+    el.classList.add('counting');
+    function step(now) {
+        const p = Math.min(1, (now - t0) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const val = start + (target - start) * eased;
+        el.textContent = Math.round(val) + suffix;
+        if (p < 1) {
+            requestAnimationFrame(step);
+        } else {
+            el.dataset._last = target;
+            el.dataset._animating = '0';
+            el.classList.remove('counting');
+        }
+    }
+    requestAnimationFrame(step);
+}
+function initCountUpObserver() {
+    // Lazily attach a light-weight observer only when a [data-count-up] element
+    // exists, so dashboards that never use counters pay no observer cost.
+    let mo = null;
+    function scanTargets() {
+        const els = document.querySelectorAll('[data-count-up]');
+        els.forEach(el => {
+            const parsed = parseFloat(el.textContent.replace(/[^0-9.-]/g, ''));
+            if (!isNaN(parsed)) el.dataset._last = parsed;
+        });
+        if (els.length > 0 && !mo) {
+            mo = new MutationObserver((recs) => {
+                // Skip unless a mutation actually changed text
+                const relevant = recs.some(r => r.type === 'characterData' ||
+                    (r.type === 'childList' && Array.from(r.addedNodes).some(n => n.nodeType === 3 || (n.textContent && n.textContent.trim().length > 0 && n.textContent !== '[object Object]'))));
+                if (!relevant) return;
+                document.querySelectorAll('[data-count-up]').forEach(el => {
+                    // Ignore while this element is mid-animation
+                    if (el.dataset._animating === '1') return;
+                    const parsed = parseFloat(el.textContent.replace(/[^0-9.-]/g, ''));
+                    if (isNaN(parsed)) return;
+                    const last = parseFloat(el.dataset._last);
+                    if (last === parsed) return;
+                    const suffix = (el.textContent.match(/[^0-9.-]+$/) || [''])[0];
+                    animateCountUp(el, parsed, { suffix, from: isNaN(last) ? 0 : last });
+                });
+            });
+            mo.observe(document.body, { subtree: true, childList: true, characterData: true });
+            window._countUpObserver = mo;
+        }
+    }
+    scanTargets();
+    // Re-scan periodically in case counters are rendered later
+    window._countUpScan = setInterval(scanTargets, 2500);
+}
+
+// ---------------------------------------------------------------------------
+// SENTIENT ORB MOOD — tint the core glow by emotional telemetry / stress level
+// level: 0 → serene (blue), 100 → elevated (amber). Fires gently, never alarm.
+// ---------------------------------------------------------------------------
+function tintSentientOrbByStress(level) {
+    const core = document.getElementById('sentient-core');
+    if (!core) return;
+    const L = Math.max(0, Math.min(100, parseFloat(level) || 50));
+    const hue = 200 - (L / 100) * 70;            // 200 (blue) → 130 (amber/green)
+    const sat = 70 + (L / 100) * 25;             // more saturated when elevated
+    core.style.setProperty('--core-filter', `hue-rotate(${(hue - 200).toFixed(0)}deg) saturate(${(sat / 70).toFixed(2)})`);
+    const dot = document.getElementById('orb-status-dot');
+    if (dot) {
+        const d = document.getElementById('sentient-ai-orb-container');
+        if (d && d.style) d.style.setProperty('--orb-state-hue', hue.toFixed(0));
+    }
+}
+// CSS consumption: .core-aura allows a hue-rotate filter driven by the mood
+(function applyCoreMoodCss() {
+    const style = document.createElement('style');
+    style.textContent = `#sentient-core .core-aura,
+#sentient-core .core-inner-glow,
+#sentient-core .core-orb { transition: filter 1.2s ease; }
+#sentient-core .core-aura { filter: var(--core-filter, none); }`;
+    document.head.appendChild(style);
+})();
+
+// ---------------------------------------------------------------------------
+// AMBIENT EXTRAS TOGGLES — Light Rays, Cursor Orb, Ticking Alerts
+// These are the "fun / intense" additions, all opt-in from the Ambient Studio.
+// ---------------------------------------------------------------------------
+function toggleAmbientExtra(name, enabled) {
+    let state = {};
+    try { state = JSON.parse(localStorage.getItem('nexora_ambient_extras') || '{}'); } catch (e) {}
+    state[name] = !!enabled;
+    try { localStorage.setItem('nexora_ambient_extras', JSON.stringify(state)); } catch (e) {}
+
+    if (name === 'light-rays') {
+        const el = document.getElementById('light-rays-overlay');
+        if (el) el.classList.toggle('hidden', !enabled);
+    } else if (name === 'cursor-orb') {
+        const el = document.getElementById('cursor-orb-el');
+        if (el) el.classList.toggle('hidden', !enabled);
+    } else if (name === 'ticking') {
+        // Start or stop the gentle periodic ambient tick
+        if (enabled) startTickingAlerts();
+        else stopTickingAlerts();
+    }
+}
+
+// Cursor Orb — a soft glowing orb that chases the pointer
+(function initCursorOrb() {
+    const orb = document.getElementById('cursor-orb-el');
+    if (!orb) return;
+    let ox = window.innerWidth / 2, oy = window.innerHeight / 2;
+    function loop() {
+        ox += (window._nx - ox) * 0.18;
+        oy += (window._ny - oy) * 0.18;
+        orb.style.left = (ox - 14) + 'px';
+        orb.style.top = (oy - 14) + 'px';
+        requestAnimationFrame(loop);
+    }
+    window.addEventListener('mousemove', (e) => { window._nx = e.clientX; window._ny = e.clientY; }, { passive: true });
+    loop();
+
+    // Restore saved preference
+    try {
+        const saved = JSON.parse(localStorage.getItem('nexora_ambient_extras') || '{}');
+        if (saved['cursor-orb']) orb.classList.remove('hidden');
+        if (saved['light-rays']) {
+            const el = document.getElementById('light-rays-overlay');
+            if (el) el.classList.remove('hidden');
+        }
+        if (saved['ticking']) startTickingAlerts();
+        // Sync the drawer checkboxes
+        ['light-rays', 'cursor-orb', 'ticking'].forEach((k) => {
+            const cb = document.getElementById('toggle-' + (k === 'ticking' ? 'ticking' : k));
+            if (cb) cb.checked = !!saved[k];
+        });
+    } catch (e) {}
+})();
+
+// Ticking Alerts — soft, infrequent ambient clock pulse (never alarming)
+let _tickingTimer = null;
+function startTickingAlerts() {
+    if (_tickingTimer) return;
+    _tickingTimer = setInterval(() => {
+        if (typeof _motionAllowed === 'function' && !_motionAllowed()) return;
+        // Gentle single sine tick at low volume
+        try { playHapticBeep(440, 'sine', 0.05); } catch (e) {}
+        // Micro-pulse on the nav status dot
+        const dot = document.querySelector('#sentient-nav .sentient-nav-dot, #hero-ai-dot, .nav-brand-icon');
+        if (dot) {
+            dot.style.transition = 'box-shadow 0.4s ease';
+            dot.style.boxShadow = '0 0 0 rgba(6,182,212,0)';
+            requestAnimationFrame(() => { dot.style.boxShadow = '0 0 14px 3px rgba(6,182,212,0.35)'; });
+            setTimeout(() => { dot.style.boxShadow = '0 0 0 rgba(6,182,212,0)'; }, 900);
+        }
+    }, 15000); // every 15s while enabled — subtle, not nagging
+}
+function stopTickingAlerts() {
+    if (_tickingTimer) { clearInterval(_tickingTimer); _tickingTimer = null; }
+}
+
+// ---------------------------------------------------------------------------
+// TYPING DOTS — animated "NEX is typing" indicator filter for chat senders
+// ---------------------------------------------------------------------------
+function typingDotEl() {
+    return '<div class="typing-dots"><span></span><span></span><span></span></div>';
+}
+
+// ---------------------------------------------------------------------------
+// HYPER DECODE — optional exotic text decode effect on hero words (opt-in flair)
+// ---------------------------------------------------------------------------
+function hyperDecode(el, finalText) {
+    if (!el) return;
+    const glyphs = '!<>-_\\/[]{}—=+*^?#________';
+    el.dataset.text = finalText;
+    let frame = 0;
+    const total = 40;
+    function frameStep() {
+        const progress = frame / total;
+        const out = finalText.split('').map((char, idx) => {
+            if (char === ' ') return ' ';
+            const revealAt = idx / finalText.length;
+            const reveal = revealAt < progress;
+            return reveal ? finalText[idx] : glyphs[Math.floor(Math.random() * glyphs.length)];
+        }).join('');
+        el.textContent = out;
+        frame++;
+        if (frame <= total) requestAnimationFrame(frameStep);
+        else el.textContent = finalText;
+    }
+    requestAnimationFrame(frameStep);
+}
+
+// ---------------------------------------------------------------------------
+// Boot the new features once the DOM is ready
+// ---------------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    try { initWordRotate(); } catch (e) {}
+    try { initCountUpObserver(); } catch (e) {}
+    // Briefly decode the brand word on first load for a sentient reveal
+    try {
+        const main = document.getElementById('main-title');
+        if (main && main.textContent.trim() === 'NEXORA' && localStorage.getItem('nexora_hyper_once') !== '1') {
+            hyperDecode(main, 'NEXORA');
+            localStorage.setItem('nexora_hyper_once', '1');
+        }
+    } catch (e) {}
+});
