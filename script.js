@@ -12672,13 +12672,988 @@ function hyperDecode(el, finalText) {
     requestAnimationFrame(frameStep);
 }
 
+// ============================================================================
+// ADVANCED AI UI & ANIMATION MASTER ENGINE (2026 EDITION)
+// Omni Command Palette, Dynamic Island HUD, 3D Swipe Deck, EKG Oscilloscope,
+// Apple Cards Carousel, Scratch Card, Before/After Slider, and Web Audio Synth
+// ============================================================================
+
 // ---------------------------------------------------------------------------
-// Boot the new features once the DOM is ready
+// 1. DYNAMIC ISLAND HUD & PANIC DECOY ENGINE
+// ---------------------------------------------------------------------------
+let _dynamicIslandExpanded = false;
+function toggleDynamicIsland(e) {
+    if (e) e.stopPropagation();
+    const hud = document.getElementById('dynamic-island-hud');
+    const expanded = document.getElementById('hud-expanded-content');
+    if (!hud || !expanded) return;
+    _dynamicIslandExpanded = !_dynamicIslandExpanded;
+    hud.classList.toggle('expanded', _dynamicIslandExpanded);
+    expanded.classList.toggle('hidden', !_dynamicIslandExpanded);
+}
+
+// Close island on click outside
+document.addEventListener('click', (e) => {
+    if (_dynamicIslandExpanded && !e.target.closest('#dynamic-island-hud')) {
+        toggleDynamicIsland();
+    }
+});
+
+// Update dynamic island status
+function updateDynamicIslandStatus(text, badge) {
+    const textEl = document.getElementById('hud-status-text');
+    const badgeEl = document.getElementById('hud-mode-badge');
+    if (textEl && text) textEl.textContent = text;
+    if (badgeEl && badge) badgeEl.textContent = badge;
+}
+
+// Panic / Quick Disguise Decoy Screen (Esc twice)
+let _lastEscTime = 0;
+function togglePanicDecoy() {
+    const decoy = document.getElementById('panic-decoy-screen');
+    if (decoy) {
+        decoy.classList.toggle('active');
+        if (decoy.classList.contains('active')) {
+            document.title = "Weather & News Portal";
+        } else {
+            document.title = "NEXORA — Sentient Aware";
+        }
+    }
+}
+
+// Dual Esc Detection
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const now = Date.now();
+        if (now - _lastEscTime < 450) {
+            togglePanicDecoy();
+            _lastEscTime = 0;
+            return;
+        }
+        _lastEscTime = now;
+        // Also close command palette if open
+        closeCommandPalette();
+    }
+    // Cmd+K or Ctrl+K for Command Palette
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommandPalette();
+    }
+});
+
+// ---------------------------------------------------------------------------
+// 2. OMNI COMMAND PALETTE (`Cmd + K`)
+// ---------------------------------------------------------------------------
+const commandRegistry = [
+    { id: 'breathe', icon: '🌿', title: '4-7-8 Deep Breathing Exercise', cat: 'Therapy & Calming', action: () => toggleBreathingModal() },
+    { id: 'grounding', icon: '🤲', title: '5-4-3-2-1 Sensory Grounding Walkthrough', cat: 'Therapy & Calming', action: () => openGroundingDeckModal() },
+    { id: 'soundscape', icon: '🎧', title: '432Hz Binaural Soundscape Studio', cat: 'Therapy & Calming', action: () => openBinauralModal() },
+    { id: 'emotion_wheel', icon: '🎯', title: '2D Emotion Circumplex Matrix', cat: 'Therapy & Calming', action: () => openEmotionMatrixModal() },
+    { id: 'scratch_card', icon: '✨', title: 'Scratch-to-Reveal Daily Secret Mantra', cat: 'Therapy & Calming', action: () => openAppleCard('scratch-card') },
+    { id: 'chat_nex', icon: '💬', title: 'Open NEX Empathetic AI Companion', cat: 'AI & Chat', action: () => toggleNexChat() },
+    { id: 'survivor_mode', icon: '🌱', title: 'Go to Survivor Wellness Portal', cat: 'Navigation', action: () => switchView('victim') },
+    { id: 'counselor_mode', icon: '🩺', title: 'Go to Clinical Counselor Command', cat: 'Navigation', action: () => { switchView('counselor'); switchMonitorTab('dashboard'); } },
+    { id: 'cases_queue', icon: '📋', title: 'View Case Triage Queue', cat: 'Clinical', action: () => { switchView('counselor'); switchMonitorTab('cases'); } },
+    { id: 'governance_analytics', icon: '📊', title: 'View Governance Telemetry & Analytics', cat: 'Clinical', action: () => { switchView('counselor'); switchMonitorTab('analytics'); } },
+    { id: 'theme_cyan', icon: '🔵', title: 'Set Theme: Cyber Cyan', cat: 'Appearance', action: () => setAmbientTheme('cyber-cyan') },
+    { id: 'theme_violet', icon: '🟣', title: 'Set Theme: Neural Violet', cat: 'Appearance', action: () => setAmbientTheme('neural-violet') },
+    { id: 'theme_emerald', icon: '🟢', title: 'Set Theme: Obsidian Emerald', cat: 'Appearance', action: () => setAmbientTheme('obsidian-emerald') },
+    { id: 'theme_amber', icon: '🟡', title: 'Set Theme: Solar Amber', cat: 'Appearance', action: () => setAmbientTheme('solar-amber') },
+    { id: 'theme_crimson', icon: '🔴', title: 'Set Theme: Deep Crimson', cat: 'Appearance', action: () => setAmbientTheme('deep-crimson') },
+    { id: 'bg_matrix', icon: '💊', title: 'Background Engine: Matrix Rain', cat: 'Appearance', action: () => setAmbientEngine('matrix-rain') },
+    { id: 'bg_retro', icon: '🟣', title: 'Background Engine: Retro Neon Grid', cat: 'Appearance', action: () => setAmbientEngine('retro-neon') },
+    { id: 'bg_warp', icon: '🌀', title: 'Background Engine: Warp Drive', cat: 'Appearance', action: () => setAmbientEngine('warp-drive') },
+    { id: 'bg_aura', icon: '🌟', title: 'Background Engine: Sentient Aura', cat: 'Appearance', action: () => setAmbientEngine('sentient-aura') },
+    { id: 'bg_synapse', icon: '🔮', title: 'Background Engine: Neural Synapse', cat: 'Appearance', action: () => setAmbientEngine('neural-synapse') },
+    { id: 'bg_smoke', icon: '🌊', title: 'Background Engine: Fluid Smoke', cat: 'Appearance', action: () => setAmbientEngine('fluid-smoke') },
+    { id: 'emergency_112', icon: '🚨', title: 'Emergency Dispatch: Call 112', cat: 'Safety', action: () => { window.location.href = 'tel:112'; } },
+    { id: 'telemanas_14416', icon: '📞', title: 'Tele-MANAS Mental Health Helpline (14416)', cat: 'Safety', action: () => { window.location.href = 'tel:14416'; } }
+];
+
+let _selectedPaletteIndex = 0;
+let _filteredPaletteCommands = [...commandRegistry];
+
+function openCommandPalette() {
+    const palette = document.getElementById('omni-command-palette');
+    const input = document.getElementById('command-palette-input');
+    if (!palette || !input) return;
+    palette.classList.remove('hidden');
+    input.value = '';
+    _selectedPaletteIndex = 0;
+    filterCommandPalette('');
+    setTimeout(() => input.focus(), 50);
+}
+
+function closeCommandPalette() {
+    const palette = document.getElementById('omni-command-palette');
+    if (palette) palette.classList.add('hidden');
+}
+
+function filterCommandPalette(q) {
+    const query = (q || '').toLowerCase().trim();
+    _filteredPaletteCommands = commandRegistry.filter(cmd => {
+        if (!query) return true;
+        return cmd.title.toLowerCase().includes(query) || cmd.cat.toLowerCase().includes(query) || cmd.id.includes(query);
+    });
+    _selectedPaletteIndex = Math.min(_selectedPaletteIndex, Math.max(0, _filteredPaletteCommands.length - 1));
+    renderCommandPaletteResults();
+}
+
+function renderCommandPaletteResults() {
+    const container = document.getElementById('command-palette-results');
+    if (!container) return;
+    if (_filteredPaletteCommands.length === 0) {
+        container.innerHTML = '<div class="p-6 text-center text-xs text-slate-500 font-mono">No matching commands found.</div>';
+        return;
+    }
+    let html = '';
+    _filteredPaletteCommands.forEach((cmd, idx) => {
+        const isSelected = idx === _selectedPaletteIndex;
+        html += `
+            <div class="command-item ${isSelected ? 'selected' : ''}" onclick="executePaletteCommand(${idx})">
+                <div class="flex items-center gap-3">
+                    <span class="text-base">${cmd.icon}</span>
+                    <div>
+                        <p class="text-xs font-semibold text-white">${cmd.title}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">${cmd.cat}</p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-mono text-cyan-400 opacity-60">SELECT ↵</span>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function executePaletteCommand(idx) {
+    const cmd = _filteredPaletteCommands[idx];
+    if (cmd && typeof cmd.action === 'function') {
+        closeCommandPalette();
+        try { cmd.action(); } catch (e) { console.error(e); }
+    }
+}
+
+// Arrow Key Navigation in Palette
+document.addEventListener('keydown', (e) => {
+    const palette = document.getElementById('omni-command-palette');
+    if (!palette || palette.classList.contains('hidden')) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        _selectedPaletteIndex = (_selectedPaletteIndex + 1) % _filteredPaletteCommands.length;
+        renderCommandPaletteResults();
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        _selectedPaletteIndex = (_selectedPaletteIndex - 1 + _filteredPaletteCommands.length) % _filteredPaletteCommands.length;
+        renderCommandPaletteResults();
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        executePaletteCommand(_selectedPaletteIndex);
+    }
+});
+
+// ---------------------------------------------------------------------------
+// 3. APPLE CARDS CAROUSEL & DETAIL MODAL
+// ---------------------------------------------------------------------------
+const appleCardContent = {
+    breathing: {
+        icon: '🌿',
+        title: '4-7-8 Resonant Vagal Breathing',
+        badge: 'Physiological Reset',
+        desc: 'Inhale for 4 seconds, gently hold for 7 seconds, and exhale steadily for 8 seconds. This clinically proven breathing cadence stimulates the vagus nerve, reducing autonomic hyperarousal and anxiety.',
+        action: () => { closeAppleCardModal(); toggleBreathingModal(); }
+    },
+    grounding: {
+        icon: '🤲',
+        title: '5-4-3-2-1 Sensory Grounding Anchor',
+        badge: 'Acute Distress Protocol',
+        desc: 'A somatic anchor technique that disrupts panic loops by sequentially engaging all 5 sensory channels: visual, tactile, auditory, olfactory, and gustatory stimuli.',
+        action: () => { closeAppleCardModal(); openGroundingDeckModal(); }
+    },
+    soundscape: {
+        icon: '🎧',
+        title: '432Hz Soundscape Synthesizer',
+        badge: 'Binaural Entrainment',
+        desc: 'Real-time Web Audio synthesis delivering a 432Hz healing carrier wave with 4Hz theta frequency offsets, soothing pink rain noise, and low-frequency ocean swells.',
+        action: () => { closeAppleCardModal(); openBinauralModal(); }
+    },
+    'emotion-wheel': {
+        icon: '🎯',
+        title: '2D Emotion Circumplex Matrix',
+        badge: "Russell's Affect Grid",
+        desc: 'Map your emotional coordinates across Valence (Pleasantness) and Arousal (Energy) to unlock bespoke psychological stabilization exercises tailored to your state.',
+        action: () => { closeAppleCardModal(); openEmotionMatrixModal(); }
+    },
+    'scratch-card': {
+        icon: '✨',
+        title: 'Daily Resilience Scratch Card',
+        badge: 'Cognitive Reframing',
+        desc: 'Interactive metallic canvas designed to deliver daily personalized affirmations and micro-affirmations backed by positive psychology principles.',
+        action: () => {
+            closeAppleCardModal();
+            const el = document.getElementById('scratch-card-wrapper');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+};
+
+let _currentAppleCardType = null;
+function openAppleCard(type) {
+    const data = appleCardContent[type];
+    if (!data) return;
+    _currentAppleCardType = type;
+    const modal = document.getElementById('apple-card-detail-modal');
+    if (!modal) return;
+    document.getElementById('apple-modal-icon').textContent = data.icon;
+    document.getElementById('apple-modal-title').textContent = data.title;
+    document.getElementById('apple-modal-badge').textContent = data.badge;
+    document.getElementById('apple-modal-desc').textContent = data.desc;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeAppleCardModal() {
+    const modal = document.getElementById('apple-card-detail-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function executeAppleCardAction() {
+    if (_currentAppleCardType && appleCardContent[_currentAppleCardType]) {
+        appleCardContent[_currentAppleCardType].action();
+    }
+}
+
+// Apple Carousel Drag Scrolling
+(function initAppleCarouselScroll() {
+    const track = document.getElementById('apple-carousel-track');
+    if (!track) return;
+    let isDown = false, startX, scrollLeft;
+    track.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - track.offsetLeft;
+        scrollLeft = track.scrollLeft;
+    });
+    track.addEventListener('mouseleave', () => { isDown = false; });
+    track.addEventListener('mouseup', () => { isDown = false; });
+    track.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - track.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        track.scrollLeft = scrollLeft - walk;
+    });
+})();
+
+// ---------------------------------------------------------------------------
+// 4. LIVE BIO-SIGNAL OSCILLOSCOPE (EKG / PPG Canvas Animation)
+// ---------------------------------------------------------------------------
+let _ekgAnimationRunning = false;
+function initBioOscilloscope() {
+    const canvas = document.getElementById('bio-oscilloscope-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    function resize() {
+        width = canvas.width = canvas.parentElement.clientWidth || 400;
+        height = canvas.height = canvas.parentElement.clientHeight || 140;
+    }
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    let x = 0;
+    let lastY = height / 2;
+    const points = [];
+    let time = 0;
+
+    function getEkgSample(t) {
+        // P-Q-R-S-T wave model
+        const cycle = t % 1.0;
+        if (cycle < 0.15) return Math.sin(cycle / 0.15 * Math.PI) * 0.15; // P wave
+        if (cycle < 0.20) return 0;
+        if (cycle < 0.23) return -0.25; // Q
+        if (cycle < 0.28) return 1.0;   // R spike
+        if (cycle < 0.33) return -0.4;  // S
+        if (cycle < 0.45) return 0;
+        if (cycle < 0.65) return Math.sin((cycle - 0.45) / 0.20 * Math.PI) * 0.35; // T wave
+        return 0; // Baseline
+    }
+
+    function render() {
+        if (!document.getElementById('bio-oscilloscope-canvas')) return;
+        ctx.fillStyle = 'rgba(6, 9, 18, 0.08)';
+        ctx.fillRect(0, 0, width, height);
+
+        // Draw grid
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.04)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let gx = 0; gx < width; gx += 20) { ctx.moveTo(gx, 0); ctx.lineTo(gx, height); }
+        for (let gy = 0; gy < height; gy += 20) { ctx.moveTo(0, gy); ctx.lineTo(width, gy); }
+        ctx.stroke();
+
+        // Calculate current point
+        time += 0.015;
+        const wave = getEkgSample(time);
+        const y = height / 2 - wave * (height * 0.38);
+
+        ctx.strokeStyle = '#22d3ee';
+        ctx.shadowColor = '#06b6d4';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x - 2, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Glowing leading dot
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        lastY = y;
+        x += 2;
+        if (x > width) {
+            x = 0;
+            lastY = height / 2;
+        }
+
+        requestAnimationFrame(render);
+    }
+    render();
+}
+
+// ---------------------------------------------------------------------------
+// 5. 3D CARD STACK SWIPE CASE TRIAGE DECK
+// ---------------------------------------------------------------------------
+const sampleTriageCases = [
+    { id: 'CASE-2026-9041', name: 'Vikram S.', risk: 'Critical', dds: '88%', token: 'Court Threat & Boycott', time: '12m ago' },
+    { id: 'CASE-2026-8812', name: 'Pooja R.', risk: 'High', dds: '74%', token: 'Intimidation Alert', time: '28m ago' },
+    { id: 'CASE-2026-7730', name: 'Anil K.', risk: 'Moderate', dds: '58%', token: 'Medical Relief Delay', time: '1h ago' },
+    { id: 'CASE-2026-6510', name: 'Sunita M.', risk: 'Low', dds: '32%', token: 'Routine Check-In', time: '2h ago' }
+];
+
+let _currentTriageDeck = [...sampleTriageCases];
+
+function renderTriageCardStack() {
+    const container = document.getElementById('triage-deck-container');
+    if (!container) return;
+    if (_currentTriageDeck.length === 0) {
+        container.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-center p-8 rounded-2xl bg-slate-900/60 border border-white/10">
+                <span class="text-4xl mb-2">🎉</span>
+                <h4 class="font-bold text-white text-base">All Triage Cards Processed</h4>
+                <p class="text-xs text-slate-400 mt-1">Queue is fully clear. Great job!</p>
+                <button onclick="resetTriageDeck()" class="btn btn-sm btn-secondary mt-4">Reload Deck</button>
+            </div>
+        `;
+        return;
+    }
+    let html = '';
+    _currentTriageDeck.slice(0, 3).forEach((item, idx) => {
+        const isTop = idx === 0;
+        const riskColor = item.risk === 'Critical' ? 'text-rose-400 border-rose-500/30 bg-rose-500/10' :
+                         item.risk === 'High' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' :
+                         'text-cyan-400 border-cyan-500/30 bg-cyan-500/10';
+        html += `
+            <div class="triage-stack-card" data-depth="${idx}" id="triage-card-${idx}">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono text-cyan-300 font-bold">${item.id}</span>
+                    <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full border ${riskColor}">${item.risk} Risk (${item.dds})</span>
+                </div>
+                <div class="space-y-1 my-2">
+                    <h4 class="text-base font-bold text-white">${item.name}</h4>
+                    <p class="text-xs text-slate-300">${item.token}</p>
+                    <span class="text-[10px] text-slate-500 font-mono">Logged: ${item.time}</span>
+                </div>
+                <div class="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
+                    <span class="text-rose-400 font-mono">◄ Swipe Defer</span>
+                    <span class="text-mint-400 font-mono">Swipe Resolve ►</span>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+    bindTopTriageCardDrag();
+}
+
+function bindTopTriageCardDrag() {
+    const card = document.getElementById('triage-card-0');
+    if (!card) return;
+    let isDragging = false, startX = 0, currentX = 0;
+
+    function onStart(e) {
+        isDragging = true;
+        startX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+    }
+    function onMove(e) {
+        if (!isDragging) return;
+        const x = (e.clientX || (e.touches && e.touches[0].clientX) || 0);
+        currentX = x - startX;
+        const rotate = (currentX / 200) * 15;
+        card.style.transform = `translate3d(${currentX}px, 0, 0) rotate(${rotate}deg)`;
+        card.style.opacity = Math.max(0.4, 1 - Math.abs(currentX) / 350);
+    }
+    function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (currentX > 90) {
+            swipeTopTriageCard('right');
+        } else if (currentX < -90) {
+            swipeTopTriageCard('left');
+        } else {
+            card.style.transform = 'translate3d(0, 0, 0) scale(1)';
+            card.style.opacity = '1';
+        }
+    }
+    card.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+
+    card.addEventListener('touchstart', onStart, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
+}
+
+function swipeTopTriageCard(direction) {
+    const card = document.getElementById('triage-card-0');
+    if (!card) return;
+    const throwX = direction === 'right' ? 400 : -400;
+    const rot = direction === 'right' ? 25 : -25;
+    card.style.transition = 'transform 0.35s ease-out, opacity 0.35s ease-out';
+    card.style.transform = `translate3d(${throwX}px, -40px, 0) rotate(${rot}deg)`;
+    card.style.opacity = '0';
+
+    setTimeout(() => {
+        const item = _currentTriageDeck.shift();
+        if (direction === 'right') {
+            try { showToast(`✓ Resolved ${item ? item.id : 'Case'}`); } catch (e) {}
+        } else {
+            try { showToast(`⚠️ Escalated ${item ? item.id : 'Case'} to Supervisor`); } catch (e) {}
+        }
+        renderTriageCardStack();
+    }, 300);
+}
+
+function resetTriageDeck() {
+    _currentTriageDeck = [...sampleTriageCases];
+    renderTriageCardStack();
+}
+
+// ---------------------------------------------------------------------------
+// 6. INTERACTIVE SPLIT BEFORE / AFTER SLIDER
+// ---------------------------------------------------------------------------
+function handleBeforeAfterMove(e) {
+    const container = document.getElementById('before-after-container');
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const percent = ((x / rect.width) * 100).toFixed(1);
+    container.style.setProperty('--split-pos', `${percent}%`);
+}
+
+function handleBeforeAfterTouch(e) {
+    if (e.touches && e.touches[0]) {
+        handleBeforeAfterMove(e.touches[0]);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 7. INTERACTIVE SCRATCH-TO-REVEAL RESILIENCE CARD
+// ---------------------------------------------------------------------------
+const sampleMantras = [
+    "You are stronger than the storms you have survived. Today is your step toward peace.",
+    "Breathe deeply. Your nervous system is safe in this moment.",
+    "Courage is not the absence of fear, but the decision that something else matters more.",
+    "Every small breath you take rewires your brain for peace and strength.",
+    "You are surrounded by people who care about your justice and well-being."
+];
+
+let _scratchCanvasInited = false;
+let _scratchRevealed = false;
+
+function initScratchCard() {
+    const canvas = document.getElementById('scratch-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.parentElement.clientWidth || 340;
+    const height = canvas.height = canvas.parentElement.clientHeight || 190;
+
+    // Draw frosted metallic overlay
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    grad.addColorStop(0, '#475569');
+    grad.addColorStop(0.5, '#94a3b8');
+    grad.addColorStop(1, '#334155');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Overlay text
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('✦ SCRATCH TO REVEAL MANTRA ✦', width / 2, height / 2 + 5);
+
+    let isScratching = false;
+
+    function erase(e) {
+        if (!isScratching || _scratchRevealed) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 22, 0, Math.PI * 2);
+        ctx.fill();
+
+        checkScratchPercentage(ctx, width, height, canvas);
+    }
+
+    canvas.onmousedown = (e) => { isScratching = true; erase(e); };
+    window.onmousemove = erase;
+    window.onmouseup = () => { isScratching = false; };
+
+    canvas.ontouchstart = (e) => { isScratching = true; erase(e); };
+    window.ontouchmove = erase;
+    window.ontouchend = () => { isScratching = false; };
+}
+
+function checkScratchPercentage(ctx, width, height, canvas) {
+    if (_scratchRevealed) return;
+    try {
+        const imgData = ctx.getImageData(0, 0, width, height);
+        let transparentPixels = 0;
+        const totalPixels = imgData.data.length / 4;
+        for (let i = 3; i < imgData.data.length; i += 16) {
+            if (imgData.data[i] === 0) transparentPixels++;
+        }
+        if (transparentPixels / (totalPixels / 4) > 0.40) {
+            _scratchRevealed = true;
+            canvas.style.opacity = '0';
+            canvas.style.pointerEvents = 'none';
+            try { launchConfetti(); } catch (e) {}
+        }
+    } catch (e) {}
+}
+
+function resetScratchCard() {
+    _scratchRevealed = false;
+    const canvas = document.getElementById('scratch-card-canvas');
+    if (canvas) {
+        canvas.style.opacity = '1';
+        canvas.style.pointerEvents = 'auto';
+    }
+    const textEl = document.getElementById('scratch-secret-text');
+    if (textEl) {
+        const randomMantra = sampleMantras[Math.floor(Math.random() * sampleMantras.length)];
+        textEl.textContent = `"${randomMantra}"`;
+    }
+    initScratchCard();
+}
+
+// ---------------------------------------------------------------------------
+// 8. WEB AUDIO API 432Hz BINAURAL SOUNDSCAPE SYNTHESIZER
+// ---------------------------------------------------------------------------
+let _audioCtx = null;
+let _sineOsc = null, _sineGain = null;
+let _rainNode = null, _rainGain = null;
+let _oceanOsc = null, _oceanGain = null;
+let _soundscapePlaying = false;
+
+function getAudioContext() {
+    if (!_audioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) _audioCtx = new AudioCtx();
+    }
+    if (_audioCtx && _audioCtx.state === 'suspended') {
+        _audioCtx.resume();
+    }
+    return _audioCtx;
+}
+
+function openBinauralModal() {
+    const modal = document.getElementById('binaural-soundscape-modal');
+    if (modal) modal.classList.remove('hidden');
+    initBinauralVisualizer();
+}
+
+function closeBinauralModal() {
+    const modal = document.getElementById('binaural-soundscape-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function toggleMasterSoundscape() {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const btnText = document.getElementById('soundscape-btn-text');
+    if (_soundscapePlaying) {
+        // Stop audio
+        if (_sineGain) _sineGain.gain.setValueAtTime(0, ctx.currentTime);
+        if (_rainGain) _rainGain.gain.setValueAtTime(0, ctx.currentTime);
+        if (_oceanGain) _oceanGain.gain.setValueAtTime(0, ctx.currentTime);
+        _soundscapePlaying = false;
+        if (btnText) btnText.textContent = '▶ Start Calming Audio';
+        const audioState = document.getElementById('hud-audio-state');
+        if (audioState) audioState.textContent = '432Hz Paused';
+    } else {
+        // Start audio
+        startSynthesizers(ctx);
+        _soundscapePlaying = true;
+        if (btnText) btnText.textContent = '⏸ Pause Calming Audio';
+        const audioState = document.getElementById('hud-audio-state');
+        if (audioState) audioState.textContent = '432Hz Active';
+    }
+}
+
+function startSynthesizers(ctx) {
+    // 432Hz Sine Wave Oscillator
+    if (!_sineOsc) {
+        _sineOsc = ctx.createOscillator();
+        _sineOsc.type = 'sine';
+        _sineOsc.frequency.setValueAtTime(432, ctx.currentTime);
+        _sineGain = ctx.createGain();
+        _sineGain.gain.setValueAtTime(0.2, ctx.currentTime);
+        _sineOsc.connect(_sineGain);
+        _sineGain.connect(ctx.destination);
+        _sineOsc.start();
+    } else {
+        _sineGain.gain.setValueAtTime(0.2, ctx.currentTime);
+    }
+
+    // Calming Pink Noise Rain Generator
+    if (!_rainGain) {
+        const bufferSize = ctx.sampleRate * 2;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99332 * b1 + white * 0.0750759;
+            b2 = 0.96900 * b2 + white * 0.1538520;
+            output[i] = (b0 + b1 + b2) * 0.11;
+        }
+        const whiteNoise = ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, ctx.currentTime);
+
+        _rainGain = ctx.createGain();
+        _rainGain.gain.setValueAtTime(0.12, ctx.currentTime);
+
+        whiteNoise.connect(filter);
+        filter.connect(_rainGain);
+        _rainGain.connect(ctx.destination);
+        whiteNoise.start();
+    } else {
+        _rainGain.gain.setValueAtTime(0.12, ctx.currentTime);
+    }
+}
+
+function setSoundVolume(type, val) {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const gainVal = (val / 100) * 0.35;
+    if (type === 'sine' && _sineGain) _sineGain.gain.setValueAtTime(gainVal, ctx.currentTime);
+    if (type === 'rain' && _rainGain) _rainGain.gain.setValueAtTime(gainVal, ctx.currentTime);
+}
+
+function initBinauralVisualizer() {
+    const canvas = document.getElementById('binaural-visualizer-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let phase = 0;
+    function loop() {
+        if (!document.getElementById('binaural-visualizer-canvas')) return;
+        const w = canvas.width = canvas.parentElement.clientWidth || 300;
+        const h = canvas.height = canvas.parentElement.clientHeight || 80;
+        ctx.fillStyle = '#090d1a';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = _soundscapePlaying ? '#a78bfa' : '#475569';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = 0; x < w; x++) {
+            const y = h / 2 + Math.sin((x * 0.05) + phase) * (_soundscapePlaying ? 18 : 3);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        phase += _soundscapePlaying ? 0.08 : 0.01;
+        requestAnimationFrame(loop);
+    }
+    loop();
+}
+
+// ---------------------------------------------------------------------------
+// 9. 2D EMOTION CIRCUMPLEX MATRIX (Russell's Affect Grid)
+// ---------------------------------------------------------------------------
+let _selectedEmotionState = null;
+
+function openEmotionMatrixModal() {
+    const modal = document.getElementById('emotion-matrix-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeEmotionMatrixModal() {
+    const modal = document.getElementById('emotion-matrix-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function handleEmotionPlaneClick(e) {
+    const plane = document.getElementById('emotion-plane-box');
+    const pin = document.getElementById('emotion-target-pin');
+    const result = document.getElementById('emotion-analysis-result');
+    if (!plane || !pin || !result) return;
+
+    const rect = plane.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Map to [-1, 1]
+    const valence = (x / rect.width) * 2 - 1; // Left (negative) to Right (positive)
+    const arousal = -((y / rect.height) * 2 - 1); // Top (high energy) to Bottom (low energy)
+
+    pin.style.left = `${x}px`;
+    pin.style.top = `${y}px`;
+    pin.classList.remove('hidden');
+
+    let stateName = "Balanced", exercise = "Deep Breathing";
+    if (arousal > 0.2 && valence > 0.2) { stateName = "Exuberant & Alert"; exercise = "Channel your high energy into creative focus."; }
+    else if (arousal > 0.2 && valence < -0.2) { stateName = "High Anxiety & Distress"; exercise = "Immediate 4-7-8 Breathing & 5-4-3-2-1 Sensory Grounding recommended."; }
+    else if (arousal < -0.2 && valence < -0.2) { stateName = "Fatigued & Low"; exercise = "Gentle self-compassion exercise & warm rest."; }
+    else if (arousal < -0.2 && valence > 0.2) { stateName = "Serene & Grounded"; exercise = "Maintain this calm equilibrium with mindful reflection."; }
+
+    _selectedEmotionState = { stateName, exercise, valence, arousal };
+    result.innerHTML = `
+        <strong>Detected State:</strong> ${stateName}<br>
+        <span class="text-slate-300">Valence: ${valence.toFixed(2)} | Arousal: ${arousal.toFixed(2)}</span><br>
+        <span class="text-mint-300 font-semibold mt-1 block">💡 Suggested: ${exercise}</span>
+    `;
+    result.classList.remove('hidden');
+}
+
+function applyEmotionState() {
+    if (_selectedEmotionState) {
+        try { showToast(`✓ Emotion logged: ${_selectedEmotionState.stateName}`); } catch (e) {}
+        closeEmotionMatrixModal();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 10. 5-4-3-2-1 SENSORY GROUNDING STEP-BY-STEP DECK
+// ---------------------------------------------------------------------------
+const groundingSteps = [
+    { num: 5, sense: "SEE", prompt: "Look around you and notice 5 things you can see right now.", hint: "e.g. A plant, a beam of light, a pen, your hands, a doorway." },
+    { num: 4, sense: "TOUCH", prompt: "Find 4 things you can physically touch and feel the texture of.", hint: "e.g. The fabric of your clothes, the smooth desk, your hair, cool glass." },
+    { num: 3, sense: "HEAR", prompt: "Listen closely and identify 3 distinct sounds around you.", hint: "e.g. Distant traffic, a humming fan, your own steady breath." },
+    { num: 2, sense: "SMELL", prompt: "Notice 2 scents in your environment or take a deep breath.", hint: "e.g. Fresh rain, coffee, clean air, your sleeve." },
+    { num: 1, sense: "TASTE", prompt: "Notice 1 taste in your mouth or sip a cool glass of water.", hint: "e.g. The clean taste of water, a mint, or swallow softly." }
+];
+
+let _currentGroundingIdx = 0;
+
+function openGroundingDeckModal() {
+    _currentGroundingIdx = 0;
+    const modal = document.getElementById('sensory-grounding-deck-modal');
+    if (modal) modal.classList.remove('hidden');
+    renderGroundingStep();
+}
+
+function closeGroundingDeckModal() {
+    const modal = document.getElementById('sensory-grounding-deck-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function renderGroundingStep() {
+    const content = document.getElementById('grounding-step-content');
+    const indicator = document.getElementById('grounding-step-indicator');
+    const step = groundingSteps[_currentGroundingIdx];
+    if (!content || !step) return;
+    if (indicator) indicator.textContent = `Step ${_currentGroundingIdx + 1} of 5`;
+
+    content.innerHTML = `
+        <span class="text-3xl font-black text-cyan-400 font-mono">${step.num}</span>
+        <h4 class="text-base font-bold text-white uppercase tracking-wider">${step.sense}</h4>
+        <p class="text-sm text-slate-200">${step.prompt}</p>
+        <p class="text-xs text-slate-400 italic">${step.hint}</p>
+    `;
+}
+
+function nextGroundingStep() {
+    if (_currentGroundingIdx < groundingSteps.length - 1) {
+        _currentGroundingIdx++;
+        renderGroundingStep();
+    } else {
+        closeGroundingDeckModal();
+        try { showToast('✓ 5-4-3-2-1 Grounding Complete! You are safe and grounded.'); } catch (e) {}
+        try { launchConfetti(); } catch (e) {}
+    }
+}
+
+function prevGroundingStep() {
+    if (_currentGroundingIdx > 0) {
+        _currentGroundingIdx--;
+        renderGroundingStep();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 11. MULTI-CHANNEL SANKEY PARTICLE STREAM CANVAS
+// ---------------------------------------------------------------------------
+function initSankeyParticleStream() {
+    const canvas = document.getElementById('sankey-stream-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    function resize() {
+        width = canvas.width = canvas.parentElement.clientWidth || 600;
+        height = canvas.height = canvas.parentElement.clientHeight || 260;
+    }
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    const channels = ['Web Portal', 'Chatbot', 'SMS', 'IVRS', 'Helpline'];
+    const particles = [];
+
+    // Initialize 24 flowing energy packets
+    for (let i = 0; i < 24; i++) {
+        particles.push({
+            channelIdx: Math.floor(Math.random() * channels.length),
+            progress: Math.random(),
+            speed: 0.004 + Math.random() * 0.006,
+            color: ['#38bdf8', '#34d399', '#a78bfa', '#f59e0b'][Math.floor(Math.random() * 4)]
+        });
+    }
+
+    function render() {
+        if (!document.getElementById('sankey-stream-canvas')) return;
+        ctx.fillStyle = 'rgba(8, 12, 24, 0.2)';
+        ctx.fillRect(0, 0, width, height);
+
+        const startX = 50;
+        const midX = width * 0.52;
+        const endX = width - 60;
+        const midY = height / 2;
+
+        // Draw Channel Nodes on Left
+        channels.forEach((name, idx) => {
+            const startY = 35 + (idx * (height - 70) / (channels.length - 1));
+
+            // Draw connecting cubic curve
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.bezierCurveTo(startX + (midX - startX) * 0.5, startY, midX - (midX - startX) * 0.5, midY, midX, midY);
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(name, startX - 8, startY + 3);
+        });
+
+        // Draw curve from Mid to End (Triage -> Resolution)
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
+        ctx.beginPath();
+        ctx.moveTo(midX, midY);
+        ctx.lineTo(endX, midY);
+        ctx.stroke();
+
+        // Central Triage Node
+        ctx.fillStyle = '#06b6d4';
+        ctx.beginPath();
+        ctx.arc(midX, midY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('NEX AI TRIAGE', midX, midY - 14);
+
+        // Resolution Node
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(endX, midY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillText('CARE RESOLVED', endX, midY - 14);
+
+        // Animate particles
+        particles.forEach(p => {
+            p.progress += p.speed;
+            if (p.progress > 1) {
+                p.progress = 0;
+                p.channelIdx = Math.floor(Math.random() * channels.length);
+            }
+            const startY = 35 + (p.channelIdx * (height - 70) / (channels.length - 1));
+            let px, py;
+            if (p.progress < 0.6) {
+                const t = p.progress / 0.6;
+                // Bezier interpolation
+                const cx1 = startX + (midX - startX) * 0.5;
+                const cx2 = midX - (midX - startX) * 0.5;
+                px = (1 - t) ** 3 * startX + 3 * (1 - t) ** 2 * t * cx1 + 3 * (1 - t) * t ** 2 * cx2 + t ** 3 * midX;
+                py = (1 - t) ** 3 * startY + 3 * (1 - t) ** 2 * t * startY + 3 * (1 - t) * t ** 2 * midY + t ** 3 * midY;
+            } else {
+                const t = (p.progress - 0.6) / 0.4;
+                px = midX + t * (endX - midX);
+                py = midY;
+            }
+
+            ctx.fillStyle = p.color;
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        requestAnimationFrame(render);
+    }
+    render();
+}
+
+// ---------------------------------------------------------------------------
+// 12. MAGNETIC BUTTONS SPRING ENGINE
+// ---------------------------------------------------------------------------
+function initMagneticButtons() {
+    const btns = document.querySelectorAll('.btn-magnetic');
+    btns.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - (rect.left + rect.width / 2);
+            const y = e.clientY - (rect.top + rect.height / 2);
+            btn.style.transform = `translate(${x * 0.28}px, ${y * 0.28}px)`;
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translate(0px, 0px)';
+        });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// BOOT THE FULL 2026 AI UI MASTER SUITE ON LOAD
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     try { initWordRotate(); } catch (e) {}
     try { initCountUpObserver(); } catch (e) {}
-    // Briefly decode the brand word on first load for a sentient reveal
+    try { initBioOscilloscope(); } catch (e) {}
+    try { renderTriageCardStack(); } catch (e) {}
+    try { initScratchCard(); } catch (e) {}
+    try { initSankeyParticleStream(); } catch (e) {}
+    try { initMagneticButtons(); } catch (e) {}
+
+    // Decode title once
     try {
         const main = document.getElementById('main-title');
         if (main && main.textContent.trim() === 'NEXORA' && localStorage.getItem('nexora_hyper_once') !== '1') {

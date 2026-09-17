@@ -18,6 +18,67 @@
     <canvas id="nexora-ambient-canvas"></canvas>
 
     <!-- ===================================================================== -->
+    <!-- DYNAMIC ISLAND HUD (TOP ADAPTIVE STATUS PILL) -->
+    <!-- ===================================================================== -->
+    <div id="dynamic-island-hud" class="dynamic-island-hud" onclick="toggleDynamicIsland(event)" title="Click to expand status HUD">
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span id="hud-status-text" class="text-xs font-mono text-cyan-300 font-semibold tracking-wider">NEXORA AWARE</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span id="hud-mode-badge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/20">Sentient Aura</span>
+            <span class="text-xs text-slate-500">⌘K</span>
+        </div>
+        <!-- Expanded Details Content (shown when expanded) -->
+        <div id="hud-expanded-content" class="hidden w-full pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400">Audio Sync: <strong class="text-cyan-300" id="hud-audio-state">432Hz Ready</strong></span>
+                <span class="text-slate-400">Heart Rate: <strong class="text-mint-300" id="hud-hrv-state">68 BPM (Calm)</strong></span>
+            </div>
+            <button onclick="event.stopPropagation(); openCommandPalette();" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30 font-mono">Open Command (⌘K)</button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- PANIC / QUICK DISGUISE DECOY SCREEN (Privacy & Safety) -->
+    <!-- ===================================================================== -->
+    <div id="panic-decoy-screen" class="panic-decoy-screen">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <div class="flex items-center justify-between border-b pb-4">
+                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    ☀️ National Weather &amp; News Portal
+                </h1>
+                <button onclick="togglePanicDecoy()" class="text-xs text-slate-500 hover:text-slate-800 underline">
+                    Return (Esc × 2)
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 bg-white rounded-xl shadow-sm border">
+                    <p class="text-xs text-slate-500">New Delhi</p>
+                    <p class="text-3xl font-light text-slate-900 mt-1">28°C</p>
+                    <p class="text-xs text-emerald-600 mt-1">Clear Skies • Humidity 45%</p>
+                </div>
+                <div class="p-4 bg-white rounded-xl shadow-sm border">
+                    <p class="text-xs text-slate-500">Mumbai</p>
+                    <p class="text-3xl font-light text-slate-900 mt-1">31°C</p>
+                    <p class="text-xs text-blue-600 mt-1">Breezy • Air Quality Good</p>
+                </div>
+                <div class="p-4 bg-white rounded-xl shadow-sm border">
+                    <p class="text-xs text-slate-500">Bengaluru</p>
+                    <p class="text-3xl font-light text-slate-900 mt-1">24°C</p>
+                    <p class="text-xs text-amber-600 mt-1">Partly Cloudy • Gentle Wind</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border space-y-3">
+                <h3 class="font-semibold text-slate-800">Daily Regional Forecast &amp; Public Notices</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Seasonal agricultural advisories indicate favorable conditions across western and southern districts. Standard urban transit schedules remain on normal operational cadence. Municipal energy conservation guidelines continue throughout the current quarter.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- OMNIPRESENT FLOATING SWITCHER CONTROLLER -->
     <!-- ===================================================================== -->
     <div id="ambient-switcher" class="fixed left-6 bottom-8 z-[9999]">
@@ -226,9 +287,27 @@
             <!-- Dynamic nav links populated by role -->
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 sm:gap-4">
+            <!-- Command Palette Shortcut Button -->
+            <button onclick="openCommandPalette()" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-xs text-slate-300 transition-all hover:border-cyan-400/40" title="Open Command Palette (Cmd + K)">
+                <span class="text-cyan-400 font-bold">⌘K</span>
+                <span class="text-[11px] text-slate-400">Search</span>
+            </button>
+
+            <!-- Soundscape Studio Quick Launcher -->
+            <button onclick="openBinauralModal()" class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-xs text-slate-300 transition-all hover:border-violet-400/40" title="432Hz Binaural Sound Studio">
+                <span>🎵</span>
+                <span class="text-[11px] text-violet-300">432Hz Sound</span>
+            </button>
+
+            <!-- Quick Disguise Shield Button -->
+            <button onclick="togglePanicDecoy()" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900/80 hover:bg-rose-950/40 border border-white/10 text-xs text-slate-400 hover:text-rose-300 transition-all hover:border-rose-400/30" title="Quick Disguise / Decoy Screen (Esc twice)">
+                <span>🛡️</span>
+                <span class="hidden xl:inline text-[11px]">Disguise</span>
+            </button>
+
             <div id="header-helplines" class="hidden sm:flex items-center gap-3 text-xs">
-                <a href="tel:112" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5">
+                <a href="tel:112" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5 btn-radar-shockwave">
                     <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
                     <span data-i18n="nav_emergency">Emergency: 112</span>
                 </a>
@@ -361,18 +440,43 @@
                 </div>
 
                 <!-- CTA Button -->
-                <div id="main-cta" class="pt-4" style="animation: fade-in-up 1.5s ease-out 2.5s both;">
-                    <button onclick="goToSecondPage()" class="btn btn-primary btn-lg group">
+                <div id="main-cta" class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4" style="animation: fade-in-up 1.5s ease-out 2.5s both;">
+                    <button onclick="goToSecondPage()" class="btn btn-primary btn-lg btn-border-beam btn-shimmer btn-magnetic px-8 py-4 text-base font-semibold group flex items-center gap-3">
                         <span data-i18n="btn_begin_connection">Begin Connection</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:translate-x-1 transition-transform">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:translate-x-1.5 transition-transform text-cyan-300">
                             <path d="M5 12h14M12 5l7 7-7 7"/>
                         </svg>
+                    </button>
+                    <button onclick="openCommandPalette()" class="btn btn-secondary btn-sm flex items-center gap-2 px-4 py-3 rounded-xl border border-white/10 hover:border-cyan-400/40">
+                        <span class="text-cyan-400">⚡</span>
+                        <span class="text-xs text-slate-300">Quick Palette (⌘K)</span>
                     </button>
                 </div>
             </div>
 
+            <!-- ================================================================= -->
+            <!-- INFINITE VELOCITY MARQUEE TICKER (Live AI Pulse & Calm Affirmations) -->
+            <!-- ================================================================= -->
+            <div class="velocity-marquee-wrap pt-6">
+                <!-- Track 1: Telemetry & Safety -->
+                <div class="velocity-marquee-track">
+                    <span class="marquee-item"><span class="text-emerald-400">●</span> 24/7 Crisis Sentinel Active</span>
+                    <span class="marquee-item">🌿 4-7-8 Breathing Engine Online</span>
+                    <span class="marquee-item">🏛️ MoSJE SIH-26094 Compliant</span>
+                    <span class="marquee-item">🔒 Zero-Knowledge Privacy Protocol</span>
+                    <span class="marquee-item">📞 Tele-MANAS 14416 Linked</span>
+                    <span class="marquee-item">🎧 432Hz Sound Resonance Ready</span>
+                    <span class="marquee-item"><span class="text-emerald-400">●</span> 24/7 Crisis Sentinel Active</span>
+                    <span class="marquee-item">🌿 4-7-8 Breathing Engine Online</span>
+                    <span class="marquee-item">🏛️ MoSJE SIH-26094 Compliant</span>
+                    <span class="marquee-item">🔒 Zero-Knowledge Privacy Protocol</span>
+                    <span class="marquee-item">📞 Tele-MANAS 14416 Linked</span>
+                    <span class="marquee-item">🎧 432Hz Sound Resonance Ready</span>
+                </div>
+            </div>
+
             <!-- Minimal Footer Info -->
-            <div id="main-footer" class="pt-16" style="animation: fade-in-up 1.5s ease-out 3s both;">
+            <div id="main-footer" class="pt-8" style="animation: fade-in-up 1.5s ease-out 3s both;">
                 <p class="text-telemetry" data-i18n="footer_credit">
                     MoSJE SIH-26094 • AI Psychological Safety & Witness Care
                 </p>
@@ -660,6 +764,185 @@
                         <li class="text-slate-600">No channel activity yet — run an SMS or IVRS check-in to start your longitudinal distress timeline.</li>
                     </ul>
                 </div>
+            </div>
+
+            <!-- ===================================================================== -->
+            <!-- 1. APPLE CARDS EXPANDING CAROUSEL (Self-Care & Daily Resilience Deck) -->
+            <!-- ===================================================================== -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-heading text-white flex items-center gap-2">
+                            <span>✨</span> Daily Resilience &amp; Calming Deck
+                        </h3>
+                        <p class="text-body text-xs text-slate-400">Interactive therapeutic tools designed for real-time grounding and recovery</p>
+                    </div>
+                    <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full hidden sm:inline-block">Swipe / Click Card</span>
+                </div>
+
+                <div class="apple-carousel-container">
+                    <div class="apple-carousel-track" id="apple-carousel-track">
+                        <!-- Card 1: 4-7-8 Breathing -->
+                        <div class="apple-card-item" style="--card-glow: #34d399;" onclick="openAppleCard('breathing')">
+                            <div class="apple-card-bg-glow"></div>
+                            <div class="space-y-2 relative z-10">
+                                <span class="text-3xl">🌿</span>
+                                <h4 class="text-lg font-bold text-white">4-7-8 Resonant Breathing</h4>
+                                <p class="text-xs text-slate-300">Synchronized visual sonar rings with 432Hz biofeedback for vagus nerve activation.</p>
+                            </div>
+                            <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between">
+                                <span class="text-xs font-mono text-mint-300">4-7-8 Rhythm</span>
+                                <span class="text-xs px-3 py-1 rounded-full bg-mint-500/20 text-mint-300 border border-mint-500/30">Launch Exercise →</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: 5-4-3-2-1 Sensory Grounding -->
+                        <div class="apple-card-item" style="--card-glow: #818cf8;" onclick="openAppleCard('grounding')">
+                            <div class="apple-card-bg-glow"></div>
+                            <div class="space-y-2 relative z-10">
+                                <span class="text-3xl">🤲</span>
+                                <h4 class="text-lg font-bold text-white">5-4-3-2-1 Sensory Grounding</h4>
+                                <p class="text-xs text-slate-300">Interactive 5-stage tactile anchor: see, touch, hear, smell, and taste cues.</p>
+                            </div>
+                            <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between">
+                                <span class="text-xs font-mono text-indigo-300">Panic Interrupt</span>
+                                <span class="text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Step-by-Step →</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: 432Hz Binaural Soundscape Studio -->
+                        <div class="apple-card-item" style="--card-glow: #38bdf8;" onclick="openAppleCard('soundscape')">
+                            <div class="apple-card-bg-glow"></div>
+                            <div class="space-y-2 relative z-10">
+                                <span class="text-3xl">🎧</span>
+                                <h4 class="text-lg font-bold text-white">432Hz Binaural Synthesizer</h4>
+                                <p class="text-xs text-slate-300">Pure healing sound frequencies, pink noise rain, and deep ocean swells in real-time.</p>
+                            </div>
+                            <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between">
+                                <span class="text-xs font-mono text-cyan-300">Web Audio Synth</span>
+                                <span class="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Play Frequencies →</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: 2D Emotion Circumplex Matrix -->
+                        <div class="apple-card-item" style="--card-glow: #f59e0b;" onclick="openAppleCard('emotion-wheel')">
+                            <div class="apple-card-bg-glow"></div>
+                            <div class="space-y-2 relative z-10">
+                                <span class="text-3xl">🎯</span>
+                                <h4 class="text-lg font-bold text-white">2D Emotion Matrix</h4>
+                                <p class="text-xs text-slate-300">Pinpoint emotional valence vs. arousal on Russell's circumplex coordinate model.</p>
+                            </div>
+                            <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between">
+                                <span class="text-xs font-mono text-amber-300">Mood Map</span>
+                                <span class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Select State →</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Daily Scratch-to-Reveal Mantra -->
+                        <div class="apple-card-item" style="--card-glow: #ec4899;" onclick="openAppleCard('scratch-card')">
+                            <div class="apple-card-bg-glow"></div>
+                            <div class="space-y-2 relative z-10">
+                                <span class="text-3xl">✨</span>
+                                <h4 class="text-lg font-bold text-white">Daily Resilience Scratch Card</h4>
+                                <p class="text-xs text-slate-300">Scratch away the frosted metallic canvas to unlock your personalized AI affirmation.</p>
+                            </div>
+                            <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between">
+                                <span class="text-xs font-mono text-pink-300">Interactive Canvas</span>
+                                <span class="text-xs px-3 py-1 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">Scratch to Reveal →</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================================== -->
+            <!-- 2. LIVE BIO-SIGNAL OSCILLOSCOPE (EKG & RESPIRATORY RHYTHM) -->
+            <!-- ===================================================================== -->
+            <div class="sentient-card p-6 mb-8">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
+                        <h4 class="font-bold text-white text-sm">Live Bio-Signal Oscilloscope</h4>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">60 FPS Real-Time</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs font-mono">
+                        <span class="text-slate-400">Heart Rate: <strong class="text-mint-300" id="live-ekg-bpm">68 BPM</strong></span>
+                        <span class="text-slate-400">HRV: <strong class="text-cyan-300">72 ms (Optimal)</strong></span>
+                    </div>
+                </div>
+                <div class="bio-oscilloscope-wrap" id="bio-oscilloscope-wrap">
+                    <canvas id="bio-oscilloscope-canvas"></canvas>
+                    <div class="bio-oscilloscope-overlay">
+                        <span>● CARDIAC / RESPIRATORY WAVEFORM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================================== -->
+            <!-- 3. INTERACTIVE SPLIT BEFORE / AFTER SLIDER (Recovery Impact) -->
+            <!-- ===================================================================== -->
+            <div class="sentient-card p-6 mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                            <span>⚖️</span> Longitudinal Recovery &amp; Resilience Impact
+                        </h4>
+                        <p class="text-body text-xs text-slate-400">Drag the glowing neon laser handle to compare survivor distress states</p>
+                    </div>
+                    <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/20">Drag Slider ◄ ►</span>
+                </div>
+
+                <div class="before-after-container" id="before-after-container" onmousemove="handleBeforeAfterMove(event)" ontouchmove="handleBeforeAfterTouch(event)">
+                    <!-- Before View (Left) -->
+                    <div class="before-view">
+                        <span class="text-xs font-mono tracking-widest text-rose-400 font-bold uppercase mb-2">● Acute Trauma &amp; Distress (Day 0)</span>
+                        <h4 class="text-lg font-bold text-white mb-2">High Hyperarousal &amp; Fear</h4>
+                        <p class="text-xs text-rose-200/80 max-w-sm">Distress Score: 88% • Severe insomnia, recurring panic cues, isolation without legal-aid guidance.</p>
+                        <div class="mt-4 flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-mono border border-rose-500/30">Critical Distress</span>
+                        </div>
+                    </div>
+
+                    <!-- After View (Right) -->
+                    <div class="after-view">
+                        <span class="text-xs font-mono tracking-widest text-cyan-300 font-bold uppercase mb-2">● AI-Guided Stability (Day 14)</span>
+                        <h4 class="text-lg font-bold text-white mb-2">Restored Calm &amp; Legal Protection</h4>
+                        <p class="text-xs text-cyan-100 max-w-sm">Distress Score: 24% • Regulated 4-7-8 sleep rhythm, in-camera testimony arranged, Tele-MANAS support.</p>
+                        <div class="mt-4 flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-[11px] font-mono border border-cyan-500/30">Resilient Recovery</span>
+                        </div>
+                    </div>
+
+                    <!-- Divider Handle -->
+                    <div class="before-after-divider" id="before-after-divider">
+                        <div class="before-after-handle">◄►</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================================== -->
+            <!-- 4. INTERACTIVE SCRATCH-TO-REVEAL RESILIENCE MANTRA -->
+            <!-- ===================================================================== -->
+            <div class="sentient-card p-6 mb-8 text-center">
+                <div class="mb-3">
+                    <h4 class="font-bold text-white text-sm flex items-center justify-center gap-2">
+                        <span>✨</span> Daily AI Resilience Secret
+                    </h4>
+                    <p class="text-body text-xs text-slate-400">Use your mouse or finger to scratch off the frosted metallic layer</p>
+                </div>
+                <div class="scratch-card-wrapper" id="scratch-card-wrapper">
+                    <div class="scratch-card-secret">
+                        <span class="text-2xl mb-1">🌟</span>
+                        <p class="text-sm font-bold text-cyan-300" id="scratch-secret-text">
+                            "You are stronger than the storms you have survived. Today is your step toward peace."
+                        </p>
+                        <span class="text-[10px] font-mono text-slate-400 mt-2">NEXORA Sentient Wellness • Verified Calming Mantra</span>
+                    </div>
+                    <canvas class="scratch-card-canvas" id="scratch-card-canvas"></canvas>
+                </div>
+                <button onclick="resetScratchCard()" class="btn btn-ghost btn-sm mt-3 text-xs text-slate-400 hover:text-white">
+                    ↺ Scratch Again with New Mantra
+                </button>
             </div>
 
             <!-- Profile Intake (First Time) -->
@@ -1054,6 +1337,32 @@
                     </div>
                 </div>
 
+                <!-- ============================================================= -->
+                <!-- 3D CARD STACK SWIPE TRIAGE DECK (Tinder/iOS Style Swiper) -->
+                <!-- ============================================================= -->
+                <div class="sentient-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                <span>🃏</span> Rapid Case Triage Deck (Swipe Action)
+                            </h4>
+                            <p class="text-body text-xs text-slate-400">Drag or swipe card: <strong>Left</strong> to Defer/Escalate • <strong>Right</strong> to Accept/Resolve</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="swipeTopTriageCard('left')" class="btn btn-sm bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30">
+                                ◄ Defer (Left)
+                            </button>
+                            <button onclick="swipeTopTriageCard('right')" class="btn btn-sm bg-mint-500/20 text-mint-300 border border-mint-500/30 hover:bg-mint-500/30">
+                                Resolve (Right) ►
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="triage-deck-container" id="triage-deck-container">
+                        <!-- Cards populated dynamically by JS -->
+                    </div>
+                </div>
+
                 <div class="sentient-card overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
@@ -1145,6 +1454,55 @@
                             <div class="flex justify-between"><span data-i18n="analytics_active">Active:</span><strong class="text-white">15</strong></div>
                             <div class="flex justify-between"><span data-i18n="analytics_stable">Stable:</span><strong class="text-mint-400">11</strong></div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================= -->
+                <!-- PULSING DISTRICT GEOGRAPHIC PIN MAP -->
+                <!-- ============================================================= -->
+                <div class="sentient-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                <span>🗺️</span> State Resilience Geographic Radar Map
+                            </h4>
+                            <p class="text-body text-xs text-slate-400">Real-time distress telemetry per statutory intervention center</p>
+                        </div>
+                        <span class="text-xs font-mono text-cyan-300">Live Geo-Telemetry</span>
+                    </div>
+
+                    <div class="district-map-container" id="district-map-container">
+                        <svg viewBox="0 0 800 280" class="w-full h-full opacity-40">
+                            <path d="M 50,140 Q 200,60 400,120 T 750,140" fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="1.5" stroke-dasharray="4 4" />
+                            <path d="M 120,220 Q 350,180 500,240 T 700,200" fill="none" stroke="rgba(168,85,247,0.3)" stroke-width="1.5" stroke-dasharray="4 4" />
+                            <circle cx="200" cy="110" r="40" fill="none" stroke="rgba(244,63,94,0.15)" stroke-width="1" />
+                            <circle cx="550" cy="130" r="30" fill="none" stroke="rgba(245,158,11,0.15)" stroke-width="1" />
+                        </svg>
+
+                        <!-- Radar Pins -->
+                        <div class="radar-pin-dot text-rose-500 bg-rose-500" style="top: 38%; left: 25%;" title="Pune Hub (DDS 74 - High Attention)"></div>
+                        <div class="radar-pin-dot text-amber-500 bg-amber-500" style="top: 48%; left: 68%;" title="Nagpur Hub (DDS 68 - Follow-up)"></div>
+                        <div class="radar-pin-dot text-cyan-400 bg-cyan-400" style="top: 55%; left: 42%;" title="Thane Hub (DDS 52 - Moderate)"></div>
+                        <div class="radar-pin-dot text-emerald-400 bg-emerald-400" style="top: 30%; left: 80%;" title="Nashik Hub (DDS 44 - Stabilized)"></div>
+                    </div>
+                </div>
+
+                <!-- ============================================================= -->
+                <!-- MULTI-CHANNEL SANKEY PARTICLE STREAM CANVAS -->
+                <!-- ============================================================= -->
+                <div class="sentient-card p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                <span>🌊</span> Multi-Channel Ingestion &amp; Triage Stream
+                            </h4>
+                            <p class="text-body text-xs text-slate-400">Visual flow of data packets: Channels $\rightarrow$ AI Triage $\rightarrow$ Clinician Resolution</p>
+                        </div>
+                        <span class="text-xs font-mono text-mint-300">Packet Flow Active</span>
+                    </div>
+
+                    <div class="sankey-stream-container" id="sankey-stream-container">
+                        <canvas id="sankey-stream-canvas"></canvas>
                     </div>
                 </div>
 
@@ -2089,7 +2447,181 @@
                 spotlight.style.top = e.clientY + 'px';
             }
         });
+    </script>
 
+    <!-- ===================================================================== -->
+    <!-- 1. OMNI COMMAND PALETTE (`Cmd + K` / `Ctrl + K`) -->
+    <!-- ===================================================================== -->
+    <div id="omni-command-palette" class="hidden command-palette-backdrop" onclick="if(event.target === this) closeCommandPalette()">
+        <div class="command-palette-box">
+            <div class="p-4 border-b border-white/10 flex items-center gap-3">
+                <span class="text-cyan-400 text-lg font-mono font-bold">⌘</span>
+                <input type="text" id="command-palette-input" placeholder="Type a command, tool, view, or theme... (e.g. 'breathe', 'triage', 'matrix', '432hz')" oninput="filterCommandPalette(this.value)" class="bg-transparent border-none outline-none text-white text-base w-full font-sans placeholder:text-slate-500">
+                <span class="text-[10px] font-mono text-slate-400 px-2 py-1 rounded bg-slate-800 border border-white/10">ESC</span>
+            </div>
+            <div id="command-palette-results" class="max-h-80 overflow-y-auto p-2 space-y-1">
+                <!-- Dynamically populated by JS -->
+            </div>
+            <div class="p-3 border-t border-white/10 bg-slate-950/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                <span>Navigate: <strong>↑ ↓</strong></span>
+                <span>Select: <strong>↵ Enter</strong></span>
+                <span>Close: <strong>Esc</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 2. BINAURAL BEATS & HEALING SOUNDSCAPE STUDIO MODAL (Web Audio API) -->
+    <!-- ===================================================================== -->
+    <div id="binaural-soundscape-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div class="sentient-modal max-w-lg w-full">
+            <div class="sentient-modal-header">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-violet-dim border border-violet-400/30 flex items-center justify-center text-xl">🎵</div>
+                    <div>
+                        <h3 class="font-bold text-white">432Hz Soundscape Studio</h3>
+                        <p class="text-xs text-slate-400">Pure healing sound frequencies &amp; organic noise synthesis</p>
+                    </div>
+                </div>
+                <button onclick="closeBinauralModal()" class="text-2xl text-slate-400 hover:text-white">&times;</button>
+            </div>
+
+            <div class="sentient-modal-body space-y-5">
+                <!-- Synth Visualizer Canvas -->
+                <div class="h-20 rounded-xl bg-slate-950/80 border border-violet-500/20 overflow-hidden relative">
+                    <canvas id="binaural-visualizer-canvas" class="w-full h-full"></canvas>
+                    <div class="absolute top-2 left-3 text-[10px] font-mono text-violet-300">
+                        FREQUENCY: <strong id="soundscape-freq-label">432 Hz Alpha Rhythm</strong>
+                    </div>
+                </div>
+
+                <!-- Frequency Controls -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-300 font-semibold">432Hz Sine Carrier</span>
+                        <input type="range" min="0" max="100" value="70" oninput="setSoundVolume('sine', this.value)" class="w-32 accent-violet-400">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-300 font-semibold">Calming Pink Rain</span>
+                        <input type="range" min="0" max="100" value="40" oninput="setSoundVolume('rain', this.value)" class="w-32 accent-cyan-400">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-300 font-semibold">Deep Ocean Swell</span>
+                        <input type="range" min="0" max="100" value="50" oninput="setSoundVolume('ocean', this.value)" class="w-32 accent-emerald-400">
+                    </div>
+                </div>
+
+                <!-- Master Controls -->
+                <div class="pt-3 border-t border-white/10 flex gap-3">
+                    <button id="soundscape-master-toggle" onclick="toggleMasterSoundscape()" class="btn btn-primary flex-1 btn-shimmer">
+                        <span id="soundscape-btn-text">▶ Start Calming Audio</span>
+                    </button>
+                    <button onclick="closeBinauralModal()" class="btn btn-secondary">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 3. 2D EMOTION CIRCUMPLEX MATRIX MODAL -->
+    <!-- ===================================================================== -->
+    <div id="emotion-matrix-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div class="sentient-modal max-w-lg w-full">
+            <div class="sentient-modal-header">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-dim border border-amber-400/30 flex items-center justify-center text-xl">🎯</div>
+                    <div>
+                        <h3 class="font-bold text-white">2D Emotion Coordinate Plane</h3>
+                        <p class="text-xs text-slate-400">Russell's Circumplex: Valence (Mood) vs. Arousal (Energy)</p>
+                    </div>
+                </div>
+                <button onclick="closeEmotionMatrixModal()" class="text-2xl text-slate-400 hover:text-white">&times;</button>
+            </div>
+
+            <div class="sentient-modal-body space-y-4">
+                <p class="text-xs text-slate-400">Click anywhere on the coordinate plane to pinpoint your exact feeling:</p>
+                <div class="relative w-full h-64 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 overflow-hidden cursor-crosshair" id="emotion-plane-box" onclick="handleEmotionPlaneClick(event)">
+                    <!-- Coordinate Axes -->
+                    <div class="absolute inset-x-0 top-1/2 h-[1px] bg-white/20"></div>
+                    <div class="absolute inset-y-0 left-1/2 w-[1px] bg-white/20"></div>
+
+                    <!-- Quadrant Labels -->
+                    <span class="absolute top-3 right-3 text-[10px] font-mono text-emerald-300">High Energy • Positive</span>
+                    <span class="absolute top-3 left-3 text-[10px] font-mono text-rose-300">High Energy • Distressed</span>
+                    <span class="absolute bottom-3 left-3 text-[10px] font-mono text-indigo-300">Low Energy • Fatigued</span>
+                    <span class="absolute bottom-3 right-3 text-[10px] font-mono text-cyan-300">Low Energy • Serene</span>
+
+                    <!-- Active Target Pin -->
+                    <div id="emotion-target-pin" class="hidden absolute w-4 h-4 rounded-full bg-cyan-400 border-2 border-white shadow-lg shadow-cyan-500/50 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                </div>
+
+                <div id="emotion-analysis-result" class="hidden p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeEmotionMatrixModal()" class="btn btn-secondary flex-1">Close</button>
+                    <button onclick="applyEmotionState()" class="btn btn-mint flex-1">Apply to AI Companion</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 4. 5-4-3-2-1 SENSORY GROUNDING STEP DECK MODAL -->
+    <!-- ===================================================================== -->
+    <div id="sensory-grounding-deck-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div class="sentient-modal max-w-md w-full">
+            <div class="sentient-modal-header">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-dim border border-indigo-400/30 flex items-center justify-center text-xl">🤲</div>
+                    <div>
+                        <h3 class="font-bold text-white">5-4-3-2-1 Sensory Grounding</h3>
+                        <p class="text-xs text-slate-400">Step-by-step physical awareness anchor</p>
+                    </div>
+                </div>
+                <button onclick="closeGroundingDeckModal()" class="text-2xl text-slate-400 hover:text-white">&times;</button>
+            </div>
+
+            <div class="sentient-modal-body space-y-5 text-center">
+                <div id="grounding-step-content" class="p-6 rounded-2xl bg-slate-900/80 border border-white/10 space-y-3">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="flex items-center justify-between">
+                    <button onclick="prevGroundingStep()" id="btn-prev-grounding" class="btn btn-sm btn-secondary">◄ Prev</button>
+                    <span id="grounding-step-indicator" class="text-xs font-mono text-cyan-300">Step 1 of 5</span>
+                    <button onclick="nextGroundingStep()" id="btn-next-grounding" class="btn btn-sm btn-mint">Next ►</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 5. APPLE CARDS EXPANDED DETAIL MODAL -->
+    <!-- ===================================================================== -->
+    <div id="apple-card-detail-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div class="sentient-modal max-w-lg w-full">
+            <div class="sentient-modal-header">
+                <div class="flex items-center gap-3">
+                    <span id="apple-modal-icon" class="text-2xl">🌿</span>
+                    <div>
+                        <h3 id="apple-modal-title" class="font-bold text-white">Therapeutic Resource</h3>
+                        <p id="apple-modal-badge" class="text-xs text-cyan-400 font-mono">Calming Protocol</p>
+                    </div>
+                </div>
+                <button onclick="closeAppleCardModal()" class="text-2xl text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="sentient-modal-body space-y-4">
+                <p id="apple-modal-desc" class="text-sm text-slate-300 leading-relaxed"></p>
+                <div class="pt-4 flex gap-3">
+                    <button onclick="closeAppleCardModal()" class="btn btn-secondary flex-1">Back</button>
+                    <button id="apple-modal-action-btn" onclick="executeAppleCardAction()" class="btn btn-mint flex-1 btn-shimmer">Launch Exercise →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
         // Awakening sequence on load
         window.addEventListener('load', () => {
             const core = document.getElementById('sentient-core');

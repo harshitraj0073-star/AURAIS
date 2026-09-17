@@ -2898,3 +2898,396 @@ body.lite-motion .role-pillar::after {
 /* --- View blur-out transition (applied before switching) --- */
 .view-blur-out { animation: view-blur-out-anim 0.2s ease-in forwards; }
 @keyframes view-blur-out-anim { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(6px); } }
+
+/* ============================================================================
+   ADVANCED AI UI & ANIMATION MASTER PACK (2026 EDITION)
+   Carousels, Swipe Stacks, Button Triggers, EKG Oscilloscope, Command Palette,
+   Dynamic Island HUD, Scratch Cards, Before/After Slider, and Sound Visualizers
+   ============================================================================ */
+
+/* --- 1. DYNAMIC ISLAND HUD (Top Pill) --- */
+.dynamic-island-hud {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 99990; height: 38px; min-width: 220px; max-width: 90vw;
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.25);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; gap: 10px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer; user-select: none;
+}
+.dynamic-island-hud:hover {
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 16px 40px -2px rgba(0, 0, 0, 0.8), 0 0 30px rgba(6, 182, 212, 0.45);
+  transform: translateX(-50%) scale(1.02);
+}
+.dynamic-island-hud.expanded {
+  height: 96px; min-width: 360px; border-radius: 24px; padding: 14px 20px;
+  flex-direction: column; justify-content: space-around;
+  background: rgba(10, 14, 26, 0.95);
+}
+
+/* --- 2. INFINITE VELOCITY MARQUEE --- */
+.velocity-marquee-wrap {
+  width: 100%; overflow: hidden; position: relative;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  padding: 8px 0;
+}
+.velocity-marquee-track {
+  display: flex; width: max-content; gap: 24px;
+  animation: marquee-scroll 28s linear infinite;
+  will-change: transform;
+}
+.velocity-marquee-track.reverse {
+  animation: marquee-scroll-rev 32s linear infinite;
+}
+.velocity-marquee-wrap:hover .velocity-marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes marquee-scroll-rev {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.marquee-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem; font-family: var(--font-mono);
+  color: #cbd5e1; white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.marquee-item:hover {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.4);
+  color: #fff; transform: translateY(-1px);
+}
+
+/* --- 3. APPLE CARDS EXPANDING CAROUSEL --- */
+.apple-carousel-container {
+  position: relative; width: 100%; overflow: hidden; padding: 12px 0 24px;
+}
+.apple-carousel-track {
+  display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding: 10px 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.apple-carousel-track::-webkit-scrollbar { display: none; }
+.apple-card-item {
+  flex: 0 0 280px; height: 380px; scroll-snap-align: center;
+  position: relative; border-radius: 24px; overflow: hidden;
+  background: linear-gradient(145deg, rgba(25, 32, 54, 0.7) 0%, rgba(10, 14, 26, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;
+  padding: 24px;
+}
+@media (min-width: 768px) {
+  .apple-card-item { flex: 0 0 320px; height: 420px; }
+}
+.apple-card-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(6, 182, 212, 0.3);
+}
+.apple-card-bg-glow {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.25;
+  background: radial-gradient(circle at 50% 20%, var(--card-glow, #06b6d4) 0%, transparent 70%);
+  transition: opacity 0.4s ease;
+}
+.apple-card-item:hover .apple-card-bg-glow { opacity: 0.5; }
+
+/* --- 4. 3D CARD STACK SWIPE (Triage Queue Deck) --- */
+.triage-deck-container {
+  position: relative; width: 100%; max-width: 440px; height: 340px;
+  margin: 0 auto; perspective: 1200px;
+}
+.triage-stack-card {
+  position: absolute; inset: 0; border-radius: 24px;
+  background: linear-gradient(135deg, rgba(20, 26, 45, 0.95), rgba(12, 16, 28, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+  padding: 24px; display: flex; flex-direction: column; justify-content: space-between;
+  cursor: grab; user-select: none;
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.3s ease, box-shadow 0.3s ease;
+  transform-origin: 50% 100%;
+}
+.triage-stack-card:active { cursor: grabbing; }
+.triage-stack-card[data-depth="0"] {
+  z-index: 3; transform: translate3d(0, 0, 0) scale(1); opacity: 1;
+}
+.triage-stack-card[data-depth="1"] {
+  z-index: 2; transform: translate3d(0, 16px, -40px) scale(0.95); opacity: 0.85;
+}
+.triage-stack-card[data-depth="2"] {
+  z-index: 1; transform: translate3d(0, 32px, -80px) scale(0.90); opacity: 0.65;
+}
+
+/* --- 5. INTERACTIVE SPLIT BEFORE / AFTER SLIDER --- */
+.before-after-container {
+  position: relative; width: 100%; height: 320px; border-radius: 20px;
+  overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6); user-select: none;
+}
+.before-view, .after-view {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  justify-content: center; padding: 28px;
+}
+.before-view {
+  background: linear-gradient(135deg, #1f1118 0%, #0d0e17 100%);
+  color: #fca5a5;
+}
+.after-view {
+  background: linear-gradient(135deg, #071e22 0%, #0d1e2e 100%);
+  color: #67e8f9;
+  clip-path: polygon(0 0, var(--split-pos, 50%) 0, var(--split-pos, 50%) 100%, 0 100%);
+}
+.before-after-divider {
+  position: absolute; top: 0; bottom: 0; left: var(--split-pos, 50%);
+  width: 3px; background: #22d3ee;
+  box-shadow: 0 0 15px #06b6d4, 0 0 30px #06b6d4;
+  transform: translateX(-50%); cursor: ew-resize; z-index: 10;
+}
+.before-after-handle {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 42px; height: 42px; border-radius: 50%;
+  background: #06b6d4; border: 3px solid #fff;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.8), 0 4px 12px rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  color: #03040a; font-weight: bold; font-size: 14px;
+}
+
+/* --- 6. ADVANCED BUTTON ANIMATION PACK --- */
+
+/* Rainbow Border Beam Button */
+.btn-border-beam {
+  position: relative; overflow: hidden; z-index: 1;
+  background: rgba(15, 20, 35, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+.btn-border-beam::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: conic-gradient(from 0deg, transparent 0 300deg, #22d3ee 330deg, #a855f7 350deg, #34d399 360deg);
+  animation: border-beam-spin 4s linear infinite;
+  z-index: -2;
+}
+.btn-border-beam::after {
+  content: ''; position: absolute; inset: 1.5px;
+  background: rgba(12, 16, 28, 0.95);
+  border-radius: 12.5px; z-index: -1;
+  transition: background 0.3s;
+}
+.btn-border-beam:hover::after {
+  background: rgba(18, 25, 45, 0.92);
+}
+.btn-border-beam:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(6, 182, 212, 0.35);
+}
+@keyframes border-beam-spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Shimmer Wave Button */
+.btn-shimmer {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #fff; font-weight: 600; border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-shimmer::after {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(60deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+  transform: translateX(-100%) rotate(25deg);
+  animation: shimmer-glint 3.5s infinite ease-in-out;
+  pointer-events: none;
+}
+@keyframes shimmer-glint {
+  20%, 100% { transform: translateX(100%) rotate(25deg); }
+}
+.btn-shimmer:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(14, 165, 233, 0.5);
+}
+
+/* Multi-Ring Radar Shockwave Button (Helpline/Emergency) */
+.btn-radar-shockwave {
+  position: relative; z-index: 1;
+}
+.btn-radar-shockwave::before,
+.btn-radar-shockwave::after {
+  content: ''; position: absolute; inset: -4px;
+  border-radius: inherit; border: 2px solid #f43f5e;
+  animation: radar-shockwave 2.4s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+  pointer-events: none; z-index: -1;
+}
+.btn-radar-shockwave::after {
+  animation-delay: 1.2s;
+}
+@keyframes radar-shockwave {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+
+/* 3D Tactile Depression Button */
+.btn-tactile-3d {
+  position: relative;
+  transform: translateY(0);
+  box-shadow: 0 6px 0 rgba(15, 23, 42, 0.9), 0 12px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.btn-tactile-3d:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(15, 23, 42, 0.9), 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Stateful Morphing Button */
+.btn-stateful {
+  position: relative; min-width: 140px; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-stateful.loading {
+  pointer-events: none; opacity: 0.85; filter: saturate(0.8);
+}
+.btn-stateful.success {
+  background: #10b981 !important; border-color: #34d399 !important;
+  color: #fff !important; box-shadow: 0 0 24px rgba(16, 185, 129, 0.6) !important;
+}
+
+/* Magnetic Spring Pull (applied via JS vector offset) */
+.btn-magnetic {
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  will-change: transform;
+}
+
+/* --- 7. LIVE BIO-SIGNAL OSCILLOSCOPE (EKW / Breathing Canvas) --- */
+.bio-oscilloscope-wrap {
+  position: relative; width: 100%; height: 140px; border-radius: 16px;
+  background: rgba(6, 9, 18, 0.9); border: 1px solid rgba(6, 182, 212, 0.25);
+  overflow: hidden; box-shadow: inset 0 0 30px rgba(6, 182, 212, 0.1);
+}
+.bio-oscilloscope-wrap canvas {
+  width: 100%; height: 100%; display: block;
+}
+.bio-oscilloscope-overlay {
+  position: absolute; top: 10px; right: 14px;
+  display: flex; align-items: center; gap: 8px; font-family: var(--font-mono);
+  font-size: 0.75rem; color: #22d3ee;
+}
+
+/* --- 8. OMNI COMMAND PALETTE (`Cmd + K`) --- */
+.command-palette-backdrop {
+  position: fixed; inset: 0; z-index: 99999;
+  background: rgba(2, 4, 10, 0.8);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 12vh;
+  animation: palette-fade 0.2s ease-out;
+}
+@keyframes palette-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.command-palette-box {
+  width: 100%; max-width: 620px; border-radius: 20px;
+  background: linear-gradient(145deg, rgba(18, 24, 42, 0.98), rgba(10, 14, 26, 0.99));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 40px rgba(6, 182, 212, 0.2);
+  overflow: hidden; animation: palette-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes palette-pop {
+  from { transform: scale(0.94) translateY(-10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.command-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-radius: 12px; margin: 4px 8px;
+  color: #cbd5e1; cursor: pointer; transition: all 0.15s ease;
+}
+.command-item:hover, .command-item.selected {
+  background: rgba(6, 182, 212, 0.15); color: #fff;
+  border-left: 3px solid #22d3ee; padding-left: 17px;
+}
+
+/* --- 9. INTERACTIVE SCRATCH CARD --- */
+.scratch-card-wrapper {
+  position: relative; width: 100%; max-width: 380px; height: 190px;
+  border-radius: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.6); margin: 0 auto;
+}
+.scratch-card-secret {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 20px; text-align: center;
+  background: linear-gradient(135deg, #1e1b4b, #0f172a);
+}
+.scratch-card-canvas {
+  position: absolute; inset: 0; cursor: crosshair; touch-action: none;
+  z-index: 2; transition: opacity 0.5s ease;
+}
+
+/* --- 10. SANKEY PARTICLE FLOW STREAM --- */
+.sankey-stream-container {
+  position: relative; width: 100%; height: 260px; border-radius: 20px;
+  background: rgba(8, 12, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.sankey-stream-container canvas {
+  width: 100%; height: 100%; display: block;
+}
+
+/* --- 11. PULSING DISTRICT RADAR PIN MAP --- */
+.district-map-container {
+  position: relative; width: 100%; height: 280px; border-radius: 20px;
+  background: rgba(7, 10, 20, 0.9); border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.radar-pin-dot {
+  position: absolute; width: 12px; height: 12px; border-radius: 50%;
+  transform: translate(-50%, -50%); cursor: pointer;
+}
+.radar-pin-dot::after {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: radar-pin-pulse 2s ease-out infinite;
+}
+@keyframes radar-pin-pulse {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* --- 12. 3D WORD FLIPBOARD & BLUR-FADE STAGGER --- */
+.word-flip-3d {
+  display: inline-block; transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.word-flip-3d.flipping {
+  transform: rotateX(90deg);
+}
+.blur-fade-stagger span {
+  display: inline-block; opacity: 0; filter: blur(10px);
+  transform: translateY(8px);
+  animation: blur-fade-word 0.4s ease-out forwards;
+}
+@keyframes blur-fade-word {
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+/* --- 13. PANIC DECOY / DISGUISE SCREEN --- */
+.panic-decoy-screen {
+  position: fixed; inset: 0; z-index: 999999;
+  background: #f8fafc; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-y: auto; padding: 24px; display: none;
+}
+.panic-decoy-screen.active { display: block; }
