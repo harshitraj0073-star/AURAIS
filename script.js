@@ -5963,6 +5963,9 @@ function switchMonitorTab(tabName) {
         renderDashboard();
         setTimeout(initWaveformCanvas, 50);
         setTimeout(() => renderDashboardIntelligence(currentDashboardIntelTab || 'swimlane'), 60);
+    } else if (tabName === 'nexora-ai') {
+        // Restore the remembered assistant conversation on first open.
+        initNexoraAiChat();
     } else if (tabName === 'cases') {
         renderDashboard();
     } else if (tabName === 'reports') {
@@ -6001,19 +6004,286 @@ function initSettingsTab() {
     }
 }
 
+// ============================================================================
+// CLINICAL & GOVERNANCE AI ASSISTANT — grounded in live app state
+// ============================================================================
+// Answers are grounded in data read at query time (case database for
+// clinicians, the district cards for administrators) rather than model recall,
+// so quoted numbers always match what the UI is showing. Role gates what the
+// model is even given: an administrator is never shown case-level records,
+// which enforces the app's permission rule instead of merely asking the model
+// to withhold them.
+
+let nexoraAiHistory = [];
+let nexoraAiAwaiting = false;
+let nexoraAiMemoryRestored = false;
+
+const NEXORA_AI_MEMORY_KEY = 'nexora_ai_memory';
+const NEXORA_AI_MEMORY_TTL_MS = 24 * 60 * 60 * 1000;
+
+function loadNexoraAiMemory() {
+    try {
+        const raw = localStorage.getItem(NEXORA_AI_MEMORY_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || !Array.isArray(data.m) || !data.m.length) return null;
+        if (!data.t || (Date.now() - data.t) > NEXORA_AI_MEMORY_TTL_MS) {
+            localStorage.removeItem(NEXORA_AI_MEMORY_KEY);
+            return null;
+        }
+        const restored = data.m
+            .filter(m => m && (m.role === 'user' || m.role === 'model') && m.text)
+            .map(m => ({ role: m.role, text: String(m.text).slice(0, 4000) }));
+        return restored.length ? restored : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveNexoraAiMemory() {
+    try {
+        if (!nexoraAiHistory.length) {
+            localStorage.removeItem(NEXORA_AI_MEMORY_KEY);
+            return;
+        }
+        localStorage.setItem(NEXORA_AI_MEMORY_KEY, JSON.stringify({
+            t: Date.now(),
+            m: nexoraAiHistory.slice(-24)
+        }));
+    } catch (e) { /* private mode / quota — memory is best-effort */ }
+}
+
+function clearNexoraAiMemory() {
+    nexoraAiHistory = [];
+    nexoraAiMemoryRestored = false;
+    try { localStorage.removeItem(NEXORA_AI_MEMORY_KEY); } catch (e) {}
+}
+
+// Reads the district cards straight from the DOM so the assistant always
+// answers with the figures currently on screen, never stale copies.
+function readGovernanceDistrictStats() {
+    const pane = document.getElementById('tab-pane-analytics');
+    if (!pane) return [];
+    const stats = [];
+    pane.querySelectorAll('.sentient-card').forEach(card => {
+        const head = card.querySelector('div.flex.justify-between.items-start');
+        const name = head && head.querySelector('h5');
+        const badge = head && head.querySelector('span');
+        if (!name || !badge || !/DDS/i.test(badge.innerText)) return;
+        const rows = [];
+        card.querySelectorAll('div.space-y-1 > div.flex.justify-between').forEach(r => {
+            const label = r.querySelector('span');
+            const val = r.querySelector('strong');
+            if (label && val) rows.push(label.innerText.trim().replace(/:$/, '') + ': ' + val.innerText.trim());
+        });
+        const m = badge.innerText.match(/(\d+)/);
+        stats.push({
+            district: name.innerText.trim(),
+            dds: m ? m[1] : 'unknown',
+            rows: rows
+        });
+    });
+    return stats;
+}
+
+function serializeCaseForAi(c, index) {
+    const checks = Array.isArray(c.checkIns) ? c.checkIns : [];
+    const last = checks[checks.length - 1];
+    const ddis = checks.map(x => x.ddiScore).filter(n => typeof n === 'number');
+    const trend = ddis.length > 1
+        ? 'DDI across ' + ddis.length + ' check-ins: ' + ddis.join(' -> ')
+        : 'DDI trend: only one check-in on record';
+
+    const lines = [
+        'CASE ' + (index + 1) +
+            ' | id: ' + (c.caseId || 'n/a') +
+            ' | token: ' + (c.token || 'n/a') +
+            ' | district: ' + (c.district || 'n/a') +
+            ' | court: ' + (c.court || 'n/a'),
+        'category: ' + (c.category || 'n/a') +
+            ' | milestone: ' + (c.milestone || 'n/a') +
+            ' | counsellor: ' + (c.assignedCounselor || 'n/a'),
+        trend
+    ];
+
+    if (last) {
+        lines.push(
+            'latest DDI: ' + last.ddiScore + ' (' + last.riskLevel + ')' +
+            ' | sleep ' + last.sleepQuality + '/10 | safety ' + last.safety + '/10' +
+            ' | anxiety ' + last.anxiety + '/10 | support ' + last.socialSupport + '/10'
+        );
+        lines.push('latest journal note: ' + String(last.journal || 'none').slice(0, 600));
+    } else {
+        lines.push('no check-ins recorded yet');
+    }
+
+    lines.push('interventions: ' + ((c.interventions && c.interventions.length) || 0) + ' recorded');
+    return lines.join('\n');
+}
+
+function buildClinicalAiContext() {
+    if (currentRole === 'admin') {
+        // Aggregates only — no case IDs, tokens, journals or check-in detail.
+        const districts = readGovernanceDistrictStats();
+        const byRisk = { HIGH: 0, MODERATE: 0, LOW: 0 };
+        let withChecks = 0, ddiSum = 0;
+
+        cases.forEach(c => {
+            const checks = Array.isArray(c.checkIns) ? c.checkIns : [];
+            if (!checks.length) return;
+            withChecks++;
+            const last = checks[checks.length - 1];
+            if (byRisk[last.riskLevel] !== undefined) byRisk[last.riskLevel]++;
+            if (typeof last.ddiScore === 'number') ddiSum += last.ddiScore;
+        });
+
+        return [
+            'DISTRICT TABLE (as displayed in the analytics tab):',
+            districts.length
+                ? districts.map(d => '- ' + d.district + ': DDS ' + d.dds + '; ' + d.rows.join('; ')).join('\n')
+                : '(district cards are not rendered yet — switch to the Analytics tab to populate)',
+            '',
+            'PLATFORM AGGREGATES (anonymised, counts only):',
+            '- cases with check-ins: ' + withChecks,
+            '- risk split: HIGH ' + byRisk.HIGH + ' | MODERATE ' + byRisk.MODERATE + ' | LOW ' + byRisk.LOW,
+            '- mean latest DDI: ' + (withChecks ? Math.round(ddiSum / withChecks) : 'n/a')
+        ].join('\n');
+    }
+
+    if (!cases.length) {
+        return 'CASE DATABASE: empty. No survivor has completed a check-in during this session yet.';
+    }
+    return 'CASE DATABASE (' + cases.length + ' case' + (cases.length === 1 ? '' : 's') + '):\n' +
+        cases.slice(0, 20).map((c, i) => serializeCaseForAi(c, i)).join('\n---\n');
+}
+
+function buildClinicalAiSystemPrompt() {
+    const isAdmin = currentRole === 'admin';
+    const lang = NEX_LANG_NAMES[currentLang] || currentLang || 'English';
+
+    const base = isAdmin ? [
+        'You are the NEXORA Governance Assistant, embedded in the MoSJE district-oversight analytics dashboard of a survivor-safety platform in India.',
+        '',
+        'SCOPE — STRICT',
+        '- You answer only about district-level, aggregate platform data.',
+        '- You are explicitly NOT permitted to access individual survivor case files, names, tokens, case IDs, journals or check-in detail. If asked for them, decline and direct the user to the Clinical role.',
+        '- Never invent districts, counts or DDS scores. Use only the figures in the DATA block below; if an answer is not there, say it is not available.'
+    ] : [
+        'You are the NEXORA Clinical Assistant, embedded in a counsellor workspace for a survivor-safety platform in India (DLSA / MoSJE, connected to Tele-MANAS 14416).',
+        '',
+        'SCOPE',
+        '- You support a qualified clinician or counsellor with triage, prioritisation, summarisation and intervention planning.',
+        '- Ground every number, case ID and trend in the DATA block below. Never invent a case, a score or a history. If the data does not answer the question, say so plainly.',
+        '- Do not diagnose and do not prescribe. Frame findings as observations for the clinician to act on, not as clinical conclusions.',
+        '- For triage, a rising DDI and short-term velocity matter more than a single absolute score.'
+    ];
+
+    return base.concat([
+        '',
+        'SAFETY — ABSOLUTE',
+        '- If the data indicates imminent risk to life or safety, put that as the FIRST line of your reply, prominently, and recommend the existing emergency pathway (112 dispatch / Tele-MANAS 14416 / protection request). Never bury it below analysis.',
+        '- Never advise altering, destroying or concealing records.',
+        '- Never expose one survivor\'s details in an answer intended for a wider audience.',
+        '',
+        'STYLE',
+        '- Lead with the answer, then the supporting numbers, then one recommended next action.',
+        '- Short paragraphs or tight bullet lists. No preamble, no restating the question.',
+        '- Reply in ' + lang + '. If the user writes in an Indian language, reply in that language.',
+        '',
+        'DATA (live, read at query time):',
+        buildClinicalAiContext()
+    ]).join('\n');
+}
+
+// Escapes FIRST, then adds only our own markup — model output is never
+// injected as raw HTML.
+function formatClinicalAiText(text) {
+    return escapeHtml(String(text))
+        .split(/\n{2,}/)
+        .map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>')
+        .join('');
+}
+
+function stripTagsToText(html) {
+    // DOMParser rather than innerHTML: parsing never fetches images, runs
+    // scripts or fires onerror, so stripping untrusted markup has no side
+    // effects beyond producing text.
+    try {
+        const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+        return (doc.body.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 4000);
+    } catch (e) {
+        return String(html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 4000);
+    }
+}
+
+async function generateClinicalAiReply(userText) {
+    // Build history from memory; Gemini requires the first turn to be a user turn.
+    const contents = nexoraAiHistory
+        .slice(-12)
+        .map(m => ({ role: m.role, parts: [{ text: String(m.text).slice(0, 4000) }] }));
+    while (contents.length && contents[0].role !== 'user') contents.shift();
+    if (!contents.length || contents[contents.length - 1].role !== 'user') {
+        contents.push({ role: 'user', parts: [{ text: String(userText).slice(0, 4000) }] });
+    }
+
+    const aiText = await callGeminiText({
+        system: buildClinicalAiSystemPrompt(),
+        contents: contents,
+        maxChars: 1400,
+        maxTokens: 640,
+        temperature: 0.4
+    });
+
+    if (aiText) {
+        return { html: formatClinicalAiText(aiText), plain: aiText, source: 'ai' };
+    }
+    // Local keyword engine — its markup is authored in-repo, so it stays trusted.
+    const localHtml = generateNexoraAiTriageResponse(userText);
+    return { html: localHtml, plain: stripTagsToText(localHtml), source: 'local' };
+}
+
+// Restores the remembered conversation the first time the tab is opened, so the
+// assistant picks up where it left off instead of silently forgetting.
+function initNexoraAiChat() {
+    if (nexoraAiMemoryRestored) return;
+    nexoraAiMemoryRestored = true;
+
+    const restored = loadNexoraAiMemory();
+    if (!restored) {
+        nexoraAiHistory = [];
+        return;
+    }
+    nexoraAiHistory = restored;
+    renderNexoraAiGreeting();
+    restored.forEach(m => {
+        // user: plain — appendNexoraAiMessage escapes it at the boundary.
+        // model: plain stored in memory — format (escape) before rendering.
+        appendNexoraAiMessage(
+            m.role === 'user' ? 'user' : 'ai',
+            m.role === 'user' ? m.text : formatClinicalAiText(m.text)
+        );
+    });
+}
+
 function handleNexoraAiSend(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('nexora-ai-input');
     if (!input) return;
     const text = input.value.trim();
-    if (!text) return;
+    // Single-flight: while a request is in flight further submits queue nowhere
+    // and cannot stack duplicate requests against a rate-limited key.
+    if (!text || nexoraAiAwaiting) return;
     input.value = '';
 
     playHapticBeep(640, 'sine', 0.08);
     appendNexoraAiMessage('user', text);
+    nexoraAiHistory.push({ role: 'user', text: text.slice(0, 4000) });
+    saveNexoraAiMemory();
+
+    const messagesContainer = document.getElementById('nexora-ai-messages');
+    if (!messagesContainer) return;
 
     // AI Typing indicator simulation
-    const messagesContainer = document.getElementById('nexora-ai-messages');
     const typingId = 'typing-' + Date.now();
     const typingDiv = document.createElement('div');
     typingDiv.id = typingId;
@@ -6029,13 +6299,186 @@ function handleNexoraAiSend(e) {
     messagesContainer.appendChild(typingDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    setTimeout(() => {
+    nexoraAiAwaiting = true;
+    setTimeout(async () => {
+        let result = null;
+        try {
+            result = await generateClinicalAiReply(text);
+        } catch (err) {
+            result = null;
+        }
+        if (!result) {
+            const localHtml = generateNexoraAiTriageResponse(text);
+            result = { html: localHtml, plain: stripTagsToText(localHtml), source: 'local' };
+        }
+
+        nexoraAiAwaiting = false;
         const indicator = document.getElementById(typingId);
         if (indicator) indicator.remove();
 
-        const response = generateNexoraAiTriageResponse(text);
-        appendNexoraAiMessage('ai', response);
+        appendNexoraAiMessage('ai', result.html);
+        nexoraAiHistory.push({ role: 'model', text: (result.plain || '').slice(0, 4000) });
+        saveNexoraAiMemory();
     }, 600);
+}
+
+// ============================================================================
+// GOVERNANCE "ASK YOUR DATA" — natural-language query over the analytics panel
+// ============================================================================
+// Reuses the same transport and the same escape path as the other surfaces.
+// Reads district figures from the DOM at query time so answers always match
+// what is on screen, and withholds case-level aggregates from administrators.
+
+function buildGovAskDataBlock() {
+    const districts = readGovernanceDistrictStats();
+    const lines = [];
+
+    lines.push('DISTRICT TABLE (read from the analytics panel at query time):');
+    if (districts.length) {
+        districts.forEach(d => lines.push('- ' + d.district + ': DDS ' + d.dds + '; ' + d.rows.join('; ')));
+    } else {
+        lines.push('(no district cards rendered — the Analytics tab must be open)');
+    }
+
+    lines.push('');
+    if (currentRole === 'admin') {
+        lines.push('(Individual case records are not available to this role.)');
+        return lines.join('\n');
+    }
+
+    const byRisk = { HIGH: 0, MODERATE: 0, LOW: 0 };
+    let withChecks = 0, ddiSum = 0;
+    cases.forEach(c => {
+        const checks = Array.isArray(c.checkIns) ? c.checkIns : [];
+        if (!checks.length) return;
+        withChecks++;
+        const last = checks[checks.length - 1];
+        if (byRisk[last.riskLevel] !== undefined) byRisk[last.riskLevel]++;
+        if (typeof last.ddiScore === 'number') ddiSum += last.ddiScore;
+    });
+
+    lines.push('CASE AGGREGATES (anonymised counts only):');
+    lines.push('- cases with check-ins: ' + withChecks);
+    lines.push('- risk split: HIGH ' + byRisk.HIGH + ' | MODERATE ' + byRisk.MODERATE + ' | LOW ' + byRisk.LOW);
+    lines.push('- mean latest DDI: ' + (withChecks ? Math.round(ddiSum / withChecks) : 'n/a'));
+    return lines.join('\n');
+}
+
+function buildGovAskSystemPrompt() {
+    const isAdmin = currentRole === 'admin';
+    const lang = NEX_LANG_NAMES[currentLang] || currentLang || 'English';
+
+    const head = isAdmin ? [
+        'You are the NEXORA analytics assistant inside a MoSJE district-oversight dashboard for a survivor-safety platform in India.',
+        '',
+        'SCOPE — STRICT',
+        '- Answer only about district-level, aggregate platform data.',
+        '- You are NOT permitted to access individual survivor case files, names, tokens, case IDs, journals or check-in detail. If asked for them, decline and point the user to the Clinical role.',
+        '- Never invent a district, a count or a DDS score. Use only the DATA block below; if a figure is not there, say it is not available.'
+    ] : [
+        'You are the NEXORA analytics assistant inside a clinician workspace for a survivor-safety platform in India (DLSA / MoSJE).',
+        '',
+        'SCOPE',
+        '- Answer about district-level governance figures and anonymised case aggregates.',
+        '- Never invent a district, a count or a DDS score. Use only the DATA block below; if a figure is not available there, say so.'
+    ];
+
+    return head.concat([
+        '',
+        'STYLE',
+        '- Answer directly, in 1 to 3 short sentences.',
+        '- Quote the exact figures you used and name the district or metric they came from.',
+        '- No preamble, no restating the question, no headers. Use bullets only if there are genuinely several distinct figures.',
+        '- Reply in ' + lang + '. If the user writes in an Indian language, reply in that language.',
+        '',
+        'DATA (live, read at query time):',
+        buildGovAskDataBlock()
+    ]).join('\n');
+}
+
+/* Key-free answer built from the same live figures, so the box stays useful
+   on a deployment with no API key configured. */
+function buildLocalGovAnswer(query) {
+    const districts = readGovernanceDistrictStats();
+    if (!districts.length) {
+        return 'The district cards are not rendered yet — open the Analytics tab so I can read the figures.';
+    }
+
+    const q = String(query || '').toLowerCase();
+    const num = d => parseInt(d.dds, 10);
+    const sorted = districts.slice().sort((a, b) => num(b) - num(a));
+    const worst = sorted[0];
+    const best = sorted[sorted.length - 1];
+
+    const rowFor = (d, label) => d.rows.find(r => r.toLowerCase().indexOf(label) === 0);
+    const totalRow = label => districts.reduce((sum, d) => {
+        const row = rowFor(d, label);
+        const v = row ? parseInt((row.split(':').slice(1).join(':')).trim(), 10) : 0;
+        return sum + (isNaN(v) ? 0 : v);
+    }, 0);
+
+    if (/worst|highest|most distress|rank|priority|hotspot|escalat/.test(q)) {
+        return worst.district + ' has the highest District Distress Score at DDS ' + worst.dds + ', against ' +
+            best.district + ' at DDS ' + best.dds + '. ' + worst.district + ' is the clear priority.';
+    }
+    if (/best|lowest|stable|calmest/.test(q)) {
+        return best.district + ' has the lowest District Distress Score at DDS ' + best.dds + '.';
+    }
+    if (/critical/.test(q)) {
+        return 'Critical cases total ' + totalRow('critical') + ' across the panel — ' +
+            districts.map(d => d.district + ' ' + (rowFor(d, 'critical') || 'not shown')).join(', ') + '.';
+    }
+    if (/total|active|how many|sum|overall|case load|caseload/.test(q)) {
+        return 'Active cases total ' + totalRow('active') + ' across ' + districts.length + ' districts (' +
+            districts.map(d => d.district + ' ' + (rowFor(d, 'active') || '')).join(', ') + ').';
+    }
+    if (/average|mean|avg|dds|score/.test(q)) {
+        const avg = Math.round(districts.reduce((s, d) => s + num(d), 0) / districts.length);
+        return 'District Distress Scores run from ' + best.dds + ' (' + best.district + ') to ' + worst.dds +
+            ' (' + worst.district + '), averaging ' + avg + ' across ' + districts.length + ' districts.';
+    }
+    return 'Districts on the panel: ' +
+        districts.map(d => d.district + ' DDS ' + d.dds + ' (' + d.rows.join(', ') + ')').join('. ') + '.';
+}
+
+function handleGovAsk(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('gov-ask-input');
+    const out = document.getElementById('gov-ask-answer');
+    if (!input || !out) return;
+    const question = input.value.trim();
+    // Single-flight: a question in progress cannot be stacked on.
+    if (!question || out.dataset.busy === '1') return;
+    input.value = '';
+
+    playHapticBeep(640, 'sine', 0.08);
+    out.classList.remove('hidden');
+    out.dataset.busy = '1';
+    out.innerHTML = '<span class="text-slate-400 italic">Reading the dashboard...</span>';
+
+    setTimeout(async () => {
+        let answer = null;
+        try {
+            answer = await callGeminiText({
+                system: buildGovAskSystemPrompt(),
+                contents: [{ role: 'user', parts: [{ text: question.slice(0, 2000) }] }],
+                maxChars: 800,
+                maxTokens: 300,
+                temperature: 0.3
+            });
+        } catch (err) {
+            answer = null;
+        }
+
+        let text;
+        try {
+            text = answer || buildLocalGovAnswer(question);
+        } catch (err) {
+            text = 'I could not read the district figures just now. Try reopening the Analytics tab.';
+        }
+        out.dataset.busy = '0';
+        out.innerHTML = formatClinicalAiText(text);
+    }, 500);
 }
 
 function appendNexoraAiMessage(sender, text) {
@@ -6046,10 +6489,14 @@ function appendNexoraAiMessage(sender, text) {
     div.className = 'flex items-start gap-3';
 
     if (sender === 'user') {
+        // Single sanitisation choke-point for untrusted input: escape first,
+        // then allow only line breaks. Model output is sanitised separately at
+        // the point it is formatted.
+        const safeUser = escapeHtml(String(text)).replace(/\n/g, '<br>');
         div.className = 'flex items-start gap-3 justify-end';
         div.innerHTML = `
             <div class="bg-sky-600 text-white rounded-2xl rounded-tr-none p-3.5 max-w-xl text-xs leading-relaxed shadow-md">
-                ${text}
+                ${safeUser}
             </div>
             <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-white shrink-0 text-xs font-bold">
                 SJ
@@ -6131,7 +6578,7 @@ function generateNexoraAiTriageResponse(query) {
     }
 
     return `
-        <p class="text-slate-200">I have registered your inquiry regarding <strong>"${query}"</strong> against the active survivor database.</p>
+        <p class="text-slate-200">I have registered your inquiry regarding <strong>"${escapeHtml(query)}"</strong> against the active survivor database.</p>
         <p class="text-slate-300 mt-1">All 4 survivor cases are synchronized. Currently, <strong>2 cases are in High Distress</strong>, <strong>1 case in Moderate Stress</strong>, and <strong>1 case Stable</strong>. You can switch to the <strong>Cases</strong> tab to review their longitudinal trajectory charts or click <strong>Alerts</strong> for immediate dispatch.</p>
     `;
 }
@@ -6144,7 +6591,9 @@ function sendAiPrompt(text) {
     }
 }
 
-function resetNexoraAiChat() {
+/* Renders the greeting shell only — never touches stored memory, so a
+   conversation can be re-rendered without being destroyed. */
+function renderNexoraAiGreeting() {
     const messagesContainer = document.getElementById('nexora-ai-messages');
     if (!messagesContainer) return;
     messagesContainer.innerHTML = `
@@ -6162,6 +6611,12 @@ function resetNexoraAiChat() {
             </div>
         </div>
     `;
+}
+
+/* Clear button: wipes the remembered conversation and re-renders the greeting. */
+function resetNexoraAiChat() {
+    clearNexoraAiMemory();
+    renderNexoraAiGreeting();
 }
 
 function updateLegalReportPreview() {
@@ -9403,12 +9858,23 @@ function buildNexContents() {
 }
 
 // Returns the model's reply text, or null to trigger the local fallback.
-async function callNexGemini() {
-    const key = getNexAiKey();
-    if (!key) return null;
+/* Shared Gemini transport. Every AI surface in the app (survivor chat, clinical
+   assistant, journal insights, governance ask-your-data) goes through here so
+   there is exactly one place that handles keys, timeouts, model fallback and
+   degraded operation.
 
-    const contents = buildNexContents();
-    if (!contents.length) return null;
+   Always resolves to a plain string, or null when the caller must fall back to
+   its local engine. It never throws — a dead network, a bad key, exhausted
+   quota or a blocked prompt all degrade to null rather than surface an error
+   to a user who may be in a vulnerable moment. */
+async function callGeminiText(opts) {
+    const o = opts || {};
+    const system = o.system || '';
+    const contents = Array.isArray(o.contents) ? o.contents : [];
+    const maxChars = Number.isFinite(o.maxChars) ? o.maxChars : NEX_AI.maxReplyChars;
+
+    const key = getNexAiKey();
+    if (!key || !contents.length || !system) return null;
 
     const primary = getNexAiModel();
     const models = [primary].concat(NEX_AI.fallbackModels.filter(m => m !== primary));
@@ -9428,11 +9894,11 @@ async function callNexGemini() {
                 },
                 signal: controller.signal,
                 body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: buildNexSystemPrompt() }] },
+                    systemInstruction: { parts: [{ text: system }] },
                     contents: contents,
                     generationConfig: {
-                        maxOutputTokens: 320,
-                        temperature: 0.85,
+                        maxOutputTokens: Number.isFinite(o.maxTokens) ? o.maxTokens : 320,
+                        temperature: Number.isFinite(o.temperature) ? o.temperature : 0.85,
                         topP: 0.95
                     },
                     safetySettings: [
@@ -9481,11 +9947,25 @@ async function callNexGemini() {
             .trim();
         if (!text) return null;
 
-        return text.length > NEX_AI.maxReplyChars
-            ? text.slice(0, NEX_AI.maxReplyChars).trim() + '…'
+        return text.length > maxChars
+            ? text.slice(0, maxChars).trim() + '…'
             : text;
     }
     return null;
+}
+
+/* NEX-specific wrapper: history comes from the on-screen conversation. */
+async function callNexGemini() {
+    if (!getNexAiKey()) return null;
+    const contents = buildNexContents();
+    if (!contents.length) return null;
+    return callGeminiText({
+        system: buildNexSystemPrompt(),
+        contents: contents,
+        maxChars: NEX_AI.maxReplyChars,
+        maxTokens: 320,
+        temperature: 0.85
+    });
 }
 
 // --- Conversation memory ----------------------------------------------------
@@ -10677,6 +11157,166 @@ function submitConversationalAnswer(answerText) {
     }
 }
 
+// ============================================================================
+// AI JOURNAL REFLECTION — survivor-facing insight after each check-in
+// ============================================================================
+// Additive: renders into #victim-ai-insight on the completion card. Shares the
+// same safety invariant as the NEX chat — crisis is decided synchronously
+// before any network call, so a slow or unavailable model can never delay
+// help information reaching someone in distress.
+
+function buildJournalAiSystemPrompt() {
+    const lang = NEX_LANG_NAMES[currentLang] || currentLang || 'English';
+    return [
+        'You write a short, warm reflection inside NEXORA, a survivor-safety and wellbeing app used in India. The person reading it has just finished a wellbeing check-in and is often going through court cases, intimidation or financial stress.',
+        '',
+        'YOU ARE NOT A CLINICIAN',
+        '- Never diagnose, never name a disorder, never mention medication or treatment.',
+        '- Never claim to be a doctor, therapist or counsellor.',
+        '',
+        'WHAT TO WRITE',
+        '- Open by acknowledging what they actually said — quote one specific thing from their own words when you can.',
+        '- Then offer ONE genuine observation drawn only from their answers. Do not list every score.',
+        '- Close with ONE small, concrete step they could take before the next check-in.',
+        '- If their answers show things have improved since earlier check-ins, say so plainly. That is real and worth naming.',
+        '- 3 short sentences to one small paragraph. Nothing longer.',
+        '',
+        'WHAT NEVER TO DO',
+        '- Never invent facts that are not in their answers.',
+        '- Never judge, shame, minimise, or compare them to anyone else.',
+        '- Never say you know exactly how they feel.',
+        '- Never promise that something will be fine, and never guarantee outcomes.',
+        '',
+        'SAFETY — ABSOLUTE',
+        '- If the answers indicate self-harm, suicide or immediate danger: write briefly that they are not alone and that real help is available right now. Point to Tele-MANAS 14416 and emergency 112. Keep it short and steady. Do not explore method or means, do not lecture, do not keep the topic open.',
+        '',
+        'STYLE',
+        '- Second person, everyday words, no clinical or therapeutic jargon.',
+        '- No headers, no bullet lists, no numbered steps, no emoji.',
+        '- Reply in ' + lang + '. If they wrote in an Indian language, reply in that language.'
+    ].join('\n');
+}
+
+function buildJournalUserMessage(newCheckIn, targetCase) {
+    const transcript = (targetCase && targetCase.latestCheckInTranscript) || [];
+    const lines = [
+        'I just finished my check-in.',
+        'My overall score came out as ' + newCheckIn.ddiScore + '/100, which the app flagged as ' + newCheckIn.riskLevel + '.',
+        ''
+    ];
+
+    if (transcript.length) {
+        lines.push('My answers:');
+        transcript.slice(0, 14).forEach(t => {
+            const q = String(t.question || '').replace(/\s+/g, ' ').trim().slice(0, 150);
+            const a = String(t.answer || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+            if (q && a) lines.push('- ' + q + ' → ' + a);
+        });
+    }
+
+    const history = (targetCase && targetCase.checkIns) || [];
+    const ddis = history.map(c => c.ddiScore).filter(n => typeof n === 'number');
+    if (ddis.length > 1) {
+        lines.push('');
+        lines.push('My previous scores, oldest to newest (0 = no distress, 100 = severe): ' + ddis.slice(-8).join(', '));
+    }
+
+    lines.push('');
+    lines.push('Please reflect on this for me.');
+    return lines.join('\n');
+}
+
+/* Key-free fallback, and the path used whenever the model is unavailable.
+   Only draws on signals whose meaning is unambiguous in this codebase:
+   ddiScore (higher = worse), riskLevel, and direction of travel over time. */
+function buildLocalJournalInsight(newCheckIn, targetCase) {
+    const lines = [];
+    const risk = newCheckIn.riskLevel;
+    const history = (targetCase && targetCase.checkIns) || [];
+    const ddis = history.map(c => c.ddiScore).filter(n => typeof n === 'number');
+
+    if (risk === 'HIGH') {
+        lines.push('Today was a heavy one, and it makes complete sense that you are feeling this way — you are carrying a lot at once.');
+    } else if (risk === 'MODERATE') {
+        lines.push('Thank you for being honest about how today went. Some of it clearly felt heavy, and it helps to have said so.');
+    } else {
+        lines.push('Thank you for checking in. Today sounds steadier than it sometimes does, and that is worth noticing.');
+    }
+
+    const areas = [];
+    const transcript = (targetCase && targetCase.latestCheckInTranscript) || [];
+    transcript.forEach(t => {
+        const a = String(t.answer || '').toLowerCase();
+        const dim = String(t.dimension || '');
+        if (/cannot sleep|can't sleep|nightmare|insomnia|no sleep/.test(a)) areas.push('your sleep');
+        else if (/alone|no one|nobody|isolated/.test(a)) areas.push('feeling alone');
+        else if (/threat|scared|afraid|danger|unsafe/.test(a)) areas.push('feeling unsafe');
+        else if (/court|hearing|adjourn|delay/.test(a)) areas.push('the wait around your case');
+        else if (/panic|heart racing|breath/.test(a)) areas.push('the panic you described');
+        else if (dim && areas.length < 2) areas.push(String(t.question || '').split(/[?.]/)[0].toLowerCase().slice(0, 40));
+    });
+
+    const unique = areas.filter((v, i, arr) => arr.indexOf(v) === i).slice(0, 2);
+    if (unique.length) {
+        lines.push('What stands out most is ' + unique.join(' and ') + '. Putting it into words is often the first step to loosening it.');
+    }
+
+    if (ddis.length >= 2) {
+        const prev = ddis[ddis.length - 2];
+        const cur = ddis[ddis.length - 1];
+        if (cur < prev) {
+            lines.push('Your score has come down since your last check-in (' + prev + ' to ' + cur + '). That is real movement and it counts.');
+        } else if (cur > prev && (cur - prev) >= 15) {
+            lines.push('Your score has climbed since your last check-in (' + prev + ' to ' + cur + '). A jump that size is worth going gently on yourself.');
+        }
+    }
+
+    lines.push('One small step before your next check-in: try the 4-7-8 breathing exercise, or write a single line about one thing that went okay — even a small one.');
+    return lines.join('\n\n');
+}
+
+function buildLocalCrisisInsight() {
+    return 'What you wrote tells me you are carrying real pain right now, and you should not have to carry it alone.\n\n'
+        + 'Please reach out now — Tele-MANAS is on 14416 and emergency services are on 112. '
+        + 'You can also open the in-app helpline page for one-tap options.\n\n'
+        + 'Writing that down took courage.';
+}
+
+async function generateJournalInsight(newCheckIn, targetCase) {
+    const panel = document.getElementById('victim-ai-insight');
+    const body = document.getElementById('victim-ai-insight-body');
+    if (!panel || !body || !newCheckIn) return;
+
+    panel.classList.remove('hidden');
+    body.innerHTML = '<p class="text-slate-400 italic">Reflecting on what you shared...</p>';
+
+    // SAFETY INVARIANT: decided synchronously, before any network call. A
+    // crisis check-in never reaches the model.
+    const transcriptText = ((targetCase && targetCase.latestCheckInTranscript) || [])
+        .map(t => t.answer || '').join(' ');
+    const crisisSource = String(newCheckIn.notes || '') + ' ' + transcriptText;
+    if (detectCrisisLevel(crisisSource) === 'critical') {
+        body.innerHTML = formatClinicalAiText(buildLocalCrisisInsight());
+        return;
+    }
+
+    let aiText = null;
+    try {
+        aiText = await callGeminiText({
+            system: buildJournalAiSystemPrompt(),
+            contents: [{ role: 'user', parts: [{ text: buildJournalUserMessage(newCheckIn, targetCase) }] }],
+            maxChars: 700,
+            maxTokens: 300,
+            temperature: 0.7
+        });
+    } catch (e) {
+        aiText = null;
+    }
+
+    const text = aiText || buildLocalJournalInsight(newCheckIn, targetCase);
+    body.innerHTML = formatClinicalAiText(text);
+}
+
 function finalizeConversationalCheckIn() {
     playHapticBeep(720, 'sine', 0.12);
 
@@ -10858,6 +11498,15 @@ function finalizeConversationalCheckIn() {
         renderCaseTimeline(targetCase);
         renderDashboard();
         updateLegalReportPreview();
+
+        // AI reflection on this check-in (fire-and-forget; falls back to the
+        // local engine, so the panel is never left stuck on "reflecting").
+        generateJournalInsight(newCheckIn, targetCase).catch(() => {
+            try {
+                const b = document.getElementById('victim-ai-insight-body');
+                if (b) b.innerHTML = formatClinicalAiText(buildLocalJournalInsight(newCheckIn, targetCase));
+            } catch (e) { /* insight is non-critical */ }
+        });
     }, 600);
 }
 

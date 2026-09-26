@@ -1,5 +1,5 @@
 /* NEXORA service worker — offline-first caching for the installable PWA. */
-const CACHE = 'nexora-v4';
+const CACHE = 'nexora-v5';
 
 /* Prerendered on install so the app still boots with no network. */
 const ASSETS = ['./', './index.html', './style.css', './script.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];

@@ -1067,6 +1067,17 @@
                     Thank you for sharing. Your responses have been securely transmitted to your care team.
                 </p>
 
+                <!-- AI JOURNAL INSIGHT (additive: hidden until a reflection is ready) -->
+                <div id="victim-ai-insight" class="hidden text-left max-w-xl mx-auto mb-6 p-4 rounded-xl bg-slate-900/60 border border-white/5">
+                    <div class="flex items-center gap-2 mb-2.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-cyan-300">Reflection on your check-in</span>
+                    </div>
+                    <div id="victim-ai-insight-body" class="text-sm text-slate-300 leading-relaxed space-y-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
                 <div class="flex flex-wrap justify-center gap-3">
                     <button onclick="retakeVictimCheckIn()" class="btn btn-secondary"><span data-i18n="btn_update_checkin">Update Check-In</span></button>
                     <button onclick="openConsultDoctorModal()" class="btn btn-mint"><span data-i18n="btn_consult_doctor">Consult Doctor</span></button>
@@ -1411,6 +1422,17 @@
                     <button onclick="exportAnonymizedReport()" class="btn btn-violet">
                         <span data-i18n="btn_export_report">📥 Export Report</span>
                     </button>
+                </div>
+
+                <!-- ASK YOUR DATA (additive: natural-language query over the panel) -->
+                <div class="sentient-card p-4">
+                    <form onsubmit="handleGovAsk(event)" class="flex gap-3">
+                        <input type="text" id="gov-ask-input" class="sentient-input flex-1"
+                            placeholder="Ask this dashboard — e.g. &quot;which district is worst off?&quot; or &quot;total critical cases&quot;"
+                            data-i18n-placeholder="gov_ask_ph">
+                        <button type="submit" class="btn btn-primary px-5"><span data-i18n="btn_ask_ai">✨ Ask AI</span></button>
+                    </form>
+                    <div id="gov-ask-answer" class="hidden mt-3 pt-3 border-t border-white/5 text-sm text-slate-300 leading-relaxed"></div>
                 </div>
 
                 <!-- District Cards -->
