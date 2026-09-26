@@ -12915,8 +12915,87 @@ window.toggleAmbientSwitcher = function() {
   const drawer = document.getElementById('ambient-switcher-drawer');
   if (drawer) {
     drawer.classList.toggle('hidden');
+    // While the drawer is open the wrapper must stay visible: it carries
+    // `opacity` for the proximity reveal, and that would fade the drawer out
+    // with it. See the reveal pass below.
+    const wrap = document.getElementById('ambient-switcher');
+    if (wrap) {
+      wrap.classList.toggle('drawer-open', !drawer.classList.contains('hidden'));
+    }
   }
 };
+
+// ============================================================================
+// PROXIMITY REVEAL — brings a floating control back only as the cursor nears it
+// ============================================================================
+// Driven from document mousemove rather than a CSS :hover because both targets
+// are hidden with pointer-events:none, and an element that cannot receive
+// pointer events can never receive its own hover. Measuring the box from the
+// outside is the only way to notice the cursor has arrived.
+//
+// Scrolling re-runs the check with the last known cursor position: both
+// controls are position:fixed, so the boxes beneath them shift while the
+// cursor stays put.
+window.initProximityReveal = function () {
+  if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  const specs = [
+    { id: 'dynamic-island-hud', pad: 28 },  // loose: sits over non-interactive title text
+    { id: 'ambient-switcher', pad: 14 }     // tight: it overlaps the Switch Role button,
+                                            // so a wide zone would keep stealing its clicks
+  ];
+
+  const items = specs
+    .map(s => ({ el: document.getElementById(s.id), pad: s.pad }))
+    .filter(i => i.el);
+  if (!items.length) return;
+
+  let lastX = -9999, lastY = -9999, queued = false;
+
+  function evaluate() {
+    queued = false;
+    items.forEach(item => {
+      const el = item.el;
+
+      // Holding something open (drawer up, HUD expanded) — stay put, otherwise
+      // fading the wrapper would take the open panel with it.
+      if (el.classList.contains('drawer-open') || el.classList.contains('expanded')) {
+        el.classList.add('proximity-near');
+        return;
+      }
+
+      const r = el.getBoundingClientRect();
+      // display:none (e.g. the HUD on mobile) leaves no box to approach.
+      if (!r.width || !r.height) {
+        el.classList.remove('proximity-near');
+        return;
+      }
+
+      const near = lastX >= r.left - item.pad && lastX <= r.right + item.pad &&
+                   lastY >= r.top - item.pad  && lastY <= r.bottom + item.pad;
+      el.classList.toggle('proximity-near', near);
+    });
+  }
+
+  function schedule(cx, cy) {
+    if (cx !== undefined) { lastX = cx; lastY = cy; }
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(evaluate);
+  }
+
+  document.addEventListener('mousemove', e => schedule(e.clientX, e.clientY), { passive: true });
+  window.addEventListener('scroll', () => schedule(), { passive: true });
+
+  // Leave everything hidden until the cursor first moves.
+  items.forEach(i => i.el.classList.remove('proximity-near'));
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', window.initProximityReveal);
+} else {
+  window.initProximityReveal();
+}
 
 window.applyPreset = function(preset) {
   if (window.AmbientController) {

@@ -3368,3 +3368,45 @@ body.lite-motion .role-pillar::after {
   .nex-ai-dot--on { animation: none; }
   .nex-typing-dots i { animation: none; opacity: 0.7; transform: none; }
 }
+
+/* ============================================================================
+   PROXIMITY REVEAL — FLOATING CONTROLS THAT OVERLAP CONTENT AT REST
+   ============================================================================
+   Two controls sit on top of things they have no business covering:
+
+     • #dynamic-island-hud  — top-centre, laid over the "Doctor & Counsellor
+                              Clinical Command" header title
+     • #ambient-switcher    — bottom-left, laid over the sidebar's
+                              "Switch Role" button
+
+   Both are worth having, so neither is removed — they simply stop claiming
+   screen space until the cursor actually reaches them.
+
+   WHY OPACITY AND NOT display:none:
+   opacity keeps the box laid out, so the proximity pass can still measure it.
+   An element with display:none has a zero rect and could never be found again
+   — and it can't be hovered either, since pointer-events:none (needed so
+   clicks fall through to the content underneath instead of being swallowed by
+   an invisible control) means :hover can never fire on it. That is exactly
+   why reveal is driven by a document-level mousemove measuring the box, not
+   by a CSS :hover.
+
+   Scope is limited to hover-capable fine pointers: on touch there is no hover
+   to reveal with, so those devices keep the original always-visible behaviour.
+   ============================================================================ */
+
+@media (hover: hover) and (pointer: fine) {
+
+  /* The HUD inherits .dynamic-island-hud's `transition: all`, so its opacity
+     already eases in over 0.4s — no transition needs to be redeclared here,
+     which would otherwise clobber that rule's hover easing. */
+  #ambient-switcher {
+    transition: opacity 0.25s ease;
+  }
+
+  #dynamic-island-hud:not(.proximity-near):not(.expanded),
+  #ambient-switcher:not(.proximity-near):not(.drawer-open) {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
