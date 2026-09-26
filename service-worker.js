@@ -1,6 +1,29 @@
 /* NEXORA service worker — offline-first caching for the installable PWA. */
-const CACHE = 'nexora-v1';
+const CACHE = 'nexora-v4';
+
+/* Prerendered on install so the app still boots with no network. */
 const ASSETS = ['./', './index.html', './style.css', './script.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
+
+/* Core files are served NETWORK-FIRST. Cache-first would pin every returning
+   visitor to whatever assets were live when they first arrived — a new deploy
+   would never reach them until they cleared site data manually. Network-first
+   keeps the offline fallback but always prefers the latest build. */
+const NETWORK_FIRST = ['index.html', 'style.css', 'script.js'];
+
+function isNetworkFirst(url) {
+  let path;
+  try { path = new URL(url).pathname; } catch (e) { return false; }
+  if (path.endsWith('/') || path.endsWith('/index.html')) return true;
+  return NETWORK_FIRST.some(name => path.endsWith('/' + name));
+}
+
+function putInCache(request, response) {
+  if (response && response.status === 200 && response.type === 'basic') {
+    const copy = response.clone();
+    caches.open(CACHE).then(cache => cache.put(request, copy)).catch(() => {});
+  }
+  return response;
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -21,16 +44,23 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const offlineFallback = () => caches.match('./index.html');
+
+  if (isNetworkFirst(event.request.url)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => putInCache(event.request, response))
+        .catch(offlineFallback)
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(event.request, copy)).catch(() => {});
-        }
-        return response;
-      }).catch(() => caches.match('./index.html'));
+      return fetch(event.request)
+        .then((response) => putInCache(event.request, response))
+        .catch(offlineFallback);
     })
   );
 });

@@ -2123,7 +2123,7 @@
                         <div onclick="selectDoctor('doc_3')" id="doc-card-doc_3" class="sentient-card p-4 cursor-pointer border-slate-700">
                             <div class="flex items-center gap-3 mb-2">
                                 <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-600 overflow-hidden">
-                                    <img src="https://images.unsplash.com/photo-1594824813579-247c433383a1?w=80" alt="Doctor" class="w-full h-full object-cover">
+                                    <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80" alt="Doctor" class="w-full h-full object-cover" loading="lazy">
                                 </div>
                                 <div>
                                     <p class="font-semibold text-white text-sm">Dr. Priya Nair</p>
@@ -2401,7 +2401,10 @@
                     <div class="w-10 h-10 rounded-full bg-slate-800 border border-cyan-400/30 flex items-center justify-center text-xl">✨</div>
                     <div>
                         <h4 class="font-bold text-white" data-i18n="nex_title">NEX AI</h4>
-                        <p class="text-xs text-cyan-300" data-i18n="nex_subtitle">Safe & Confidential</p>
+                        <div class="flex items-center gap-1.5">
+                            <span id="nex-ai-dot" class="nex-ai-dot" onclick="nexAiSetupPrompt()" role="button" tabindex="0" aria-label="Configure the AI brain"></span>
+                            <p class="text-xs text-cyan-300" data-i18n="nex_subtitle">Safe & Confidential</p>
+                        </div>
                     </div>
                 </div>
                 <button onclick="toggleNexChat()" class="text-2xl text-slate-400 hover:text-white">&times;</button>

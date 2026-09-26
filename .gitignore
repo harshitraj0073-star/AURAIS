@@ -1,0 +1,18 @@
+# --- Secrets ---------------------------------------------------------------
+# Real Gemini API keys live here and must NEVER be committed.
+# Copy ai-config.example.js -> ai-config.js and fill in your key locally.
+ai-config.js
+
+# --- Dependencies / build --------------------------------------------------
+node_modules/
+.npm/
+
+# --- Editor / OS -----------------------------------------------------------
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# --- Logs ------------------------------------------------------------------
+*.log
+npm-debug.log*
