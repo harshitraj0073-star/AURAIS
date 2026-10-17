@@ -3619,44 +3619,45 @@ function updateLiveAnalysis() {
 // Sample Test Presets for SIH-26094
 function applyVictimPreset(type) {
     playHapticBeep(640, 'sine', 0.08);
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
     const caseSelect = document.getElementById('caseIdSelect');
     const milestoneSelect = document.getElementById('caseMilestone');
 
     if (type === 'intimidation') {
         if (caseSelect) caseSelect.value = "MH-PUN-2026-081";
         if (milestoneSelect) milestoneSelect.value = "Cross-Examination Scheduled";
-        document.getElementById('sleepQuality').value = 9;
-        document.getElementById('safety').value = 9;
-        document.getElementById('anxiety').value = 10;
-        document.getElementById('socialSupport').value = 8;
-        document.getElementById('journal').value = "Two men came to my home at night and threatened me. We are terrified. Police did not help.";
+        setVal('sleepQuality', 9);
+        setVal('safety', 9);
+        setVal('anxiety', 10);
+        setVal('socialSupport', 8);
+        setVal('journal', "Two men came to my home at night and threatened me. We are terrified. Police did not help.");
         currentAcousticData = { jitter: 3.42, shimmer: 0.88, tremor: 8.5 };
     } else if (type === 'boycott') {
         if (caseSelect) caseSelect.value = "MH-NGP-2026-042";
         if (milestoneSelect) milestoneSelect.value = "Charge Sheet Scrutiny";
-        document.getElementById('sleepQuality').value = 8;
-        document.getElementById('safety').value = 9;
-        document.getElementById('anxiety').value = 9;
-        document.getElementById('socialSupport').value = 9;
-        document.getElementById('journal').value = "My brother was attacked on the road. Grocery shops refuse to sell us grains. Total terror.";
+        setVal('sleepQuality', 8);
+        setVal('safety', 9);
+        setVal('anxiety', 9);
+        setVal('socialSupport', 9);
+        setVal('journal', "My brother was attacked on the road. Grocery shops refuse to sell us grains. Total terror.");
         currentAcousticData = { jitter: 3.12, shimmer: 0.79, tremor: 8.0 };
     } else if (type === 'courtDelay') {
         if (caseSelect) caseSelect.value = "MH-THN-2026-103";
         if (milestoneSelect) milestoneSelect.value = "Special Court Hearing Adjourned";
-        document.getElementById('sleepQuality').value = 6;
-        document.getElementById('safety').value = 5;
-        document.getElementById('anxiety').value = 8;
-        document.getElementById('socialSupport').value = 6;
-        document.getElementById('journal').value = "Court delayed again for 4th time. Bus fare taking all money, feeling hopeless.";
+        setVal('sleepQuality', 6);
+        setVal('safety', 5);
+        setVal('anxiety', 8);
+        setVal('socialSupport', 6);
+        setVal('journal', "Court delayed again for 4th time. Bus fare taking all money, feeling hopeless.");
         currentAcousticData = { jitter: 1.84, shimmer: 0.52, tremor: 5.8 };
     } else if (type === 'calm') {
         if (caseSelect) caseSelect.value = "MH-AUR-2026-095";
         if (milestoneSelect) milestoneSelect.value = "Trial Concluded";
-        document.getElementById('sleepQuality').value = 2;
-        document.getElementById('safety').value = 1;
-        document.getElementById('anxiety').value = 2;
-        document.getElementById('socialSupport').value = 1;
-        document.getElementById('journal').value = "Relief compensation received in bank account. We feel safe now and trial concluded peacefully.";
+        setVal('sleepQuality', 2);
+        setVal('safety', 1);
+        setVal('anxiety', 2);
+        setVal('socialSupport', 1);
+        setVal('journal', "Relief compensation received in bank account. We feel safe now and trial concluded peacefully.");
         currentAcousticData = { jitter: 0.92, shimmer: 0.28, tremor: 2.1 };
     }
     updateAcousticMarkerDOM();
@@ -3664,7 +3665,7 @@ function applyVictimPreset(type) {
 }
 
 function handleVictimSubmit(e) {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
     playHapticBeep(800, 'triangle', 0.1);
 
     const caseSelect = document.getElementById('caseIdSelect');
@@ -3673,11 +3674,11 @@ function handleVictimSubmit(e) {
     const caseId = targetCase ? targetCase.caseId : "MH-PUN-2026-081";
 
     const milestone = document.getElementById('caseMilestone')?.value || "Cross-Examination Scheduled";
-    const sleep = parseInt(document.getElementById('sleepQuality').value) || 0;
-    const safety = parseInt(document.getElementById('safety').value) || 0;
-    const anxiety = parseInt(document.getElementById('anxiety').value) || 0;
-    const support = parseInt(document.getElementById('socialSupport').value) || 0;
-    const journal = document.getElementById('journal').value.trim();
+    const sleep = parseInt(document.getElementById('sleepQuality')?.value) || 0;
+    const safety = parseInt(document.getElementById('safety')?.value) || 0;
+    const anxiety = parseInt(document.getElementById('anxiety')?.value) || 0;
+    const support = parseInt(document.getElementById('socialSupport')?.value) || 0;
+    const journal = (document.getElementById('journal')?.value || '').trim();
 
     const analysis = calculateDDS(sleep, safety, anxiety, support, journal, caseId);
 
