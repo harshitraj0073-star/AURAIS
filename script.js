@@ -1,5 +1,5 @@
 // ============================================================================
-// NEXORA — Complete Multi-Language Safe Helper Application
+// AURAIS — Sentient Emotional Resilience & Distress Triage System
 // ============================================================================
 
 // Distress Keyword Lexicon
@@ -482,7 +482,7 @@ const i18nDictionary = {
     en: {
         hub_status: "Living AI Wellness & Support Hub",
         radar_title: "Live Community Safety & Distress Pulse",
-        page_title: "NEXORA — We Are Here To Help",
+        page_title: "AURAIS — We Are Here To Help",
         header_sub: "| Safe Support Assistant",
         header_emergency: "Emergency:",
         header_mental_health: "Mental Health:",
@@ -615,7 +615,7 @@ const i18nDictionary = {
 
         // --- New UI keys (current app) ---
         nav_back: "← Back", nav_home: "Home", nav_emotions: "Emotions", nav_triage: "Triage", nav_analytics: "Analytics", nav_emergency: "Emergency", nav_mental_health: "Mental Health",
-        intro_status: "● System Active", intro_desc: "NEXORA uses advanced AI to monitor emotional wellbeing and connect you with the right support at the right time.", btn_listen: "🔊 Listen", btn_begin_connection: "Begin Connection", footer_credit: "Built with ❤ for survivor safety & dignity",
+        intro_status: "● System Active", intro_desc: "AURAIS uses advanced AI to monitor emotional wellbeing and connect you with the right support at the right time.", btn_listen: "🔊 Listen", btn_begin_connection: "Begin Connection", footer_credit: "Built with ❤ for survivor safety & dignity",
         role_badge: "WHO ARE YOU?", role_title: "Choose Your Path", role_desc: "Select your role to access the right tools and support.",
         role_patient_title: "I Need Support", role_patient_sub: "SURVIVOR / PATIENT", role_patient_desc: "Check in regularly, track your wellbeing, and access breathing exercises and crisis support.",
         feature_checkins: "Daily Check-ins", feature_breathing: "Breathing Exercises", feature_journal: "Private Journal", btn_patient_mode: "Enter Support Mode",
@@ -632,13 +632,13 @@ const i18nDictionary = {
         resp_very_good: "Very Good", resp_good: "Good", resp_okay: "Okay", resp_worried: "Worried", resp_difficult: "Difficult",
         checkin_input_ph: "Share anything on your mind...", btn_send: "Send →",
         checkin_done_title: "Check-In Complete ✓", checkin_done_desc: "Your responses have been recorded. Your counselor can see your status.", btn_update_checkin: "Update Check-In", btn_consult_doctor: "Consult Doctor",
-        mon_clinical_command: "Clinical Command", mon_dashboard: "Dashboard", mon_nexora_ai: "NEXORA AI", mon_cases: "Cases", mon_alerts: "Alerts", mon_analytics: "Analytics", mon_reports: "Reports", mon_settings: "Settings",
+        mon_clinical_command: "Clinical Command", mon_dashboard: "Dashboard", mon_nexora_ai: "AURAIS AI", mon_cases: "Cases", mon_alerts: "Alerts", mon_analytics: "Analytics", mon_reports: "Reports", mon_settings: "Settings",
         mon_user_name: "Dr. Sarah Jenkins", mon_user_role: "Clinical Psychologist", btn_switch_role: "Switch Role",
         counselor_banner_title: "Clinical Command Center", counselor_banner_badge: "DLSE — SURVIVOR PROTECTION", counselor_banner_desc: "Monitor patient wellbeing, coordinate interventions, and track outcomes.",
         btn_home: "← Home",
         kpi_active_patients: "Active Patients", kpi_under_care: "Under Care", kpi_high_risk: "High Risk", kpi_need_attention: "Need Attention",
         kpi_followup: "Follow-up Due", kpi_court_delay: "Court Delays", kpi_interventions: "Interventions", kpi_completed: "Completed",
-        qa_survivor_checkin: "Survivor Check-In", qa_daily_assessment: "Daily Assessment", qa_nexora_ai: "NEXORA AI", qa_clinical_assistant: "Clinical Assistant",
+        qa_survivor_checkin: "Survivor Check-In", qa_daily_assessment: "Daily Assessment", qa_nexora_ai: "AURAIS AI", qa_clinical_assistant: "Clinical Assistant",
         qa_breathe: "Breathe", qa_478_breathing: "4-7-8 Breathing", qa_nex_chat: "NEX Chat", qa_247_companion: "24/7 Companion",
         critical_alerts: "Critical Alerts", no_critical_alerts: "No critical alerts", btn_112_dispatch: "🚨 112 Dispatch", btn_clear: "Clear",
         ai_greeting: "Hello, Dr. Jenkins", ai_desc: "How can I assist you today?", ai_prompt_triage: "Triage patients", ai_prompt_trends: "View trends", ai_prompt_report: "Generate report", ai_input_ph: "Ask NEXORA anything...",
@@ -2736,7 +2736,7 @@ function changeLanguage(lang) {
     const dict = i18nDictionary[lang];
 
     // Set page title and HTML lang attribute
-    document.title = dict.page_title || "NEXORA — We Are Here To Help";
+    document.title = dict.page_title || "AURAIS — We Are Here To Help";
     document.documentElement.lang = lang;
 
     // Update text content on every [data-i18n] element
@@ -3964,7 +3964,7 @@ function summarizeChannels() {
 function installNexoraApp() {
     playHapticBeep(600, 'sine', 0.08);
     if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
-        showToast('You are already running NEXORA as an installed app.', 'success');
+        showToast('You are already running AURAIS as an installed app.', 'success');
         return;
     }
     if (window.deferredInstallPrompt) {
@@ -4016,7 +4016,7 @@ function scoreReplyText(text, scaleType) {
 
 // ----- SMS channel simulation --------------------------------------------------
 const SMS_QUESTIONS = [
-    "NEXORA care check-in ☀️ How have you been feeling emotionally over the past 24 hours?\nReply 1 to 5 (1 = very low, 5 = very good).",
+    "AURAIS care check-in ☀️ How have you been feeling emotionally over the past 24 hours?\nReply 1 to 5 (1 = very low, 5 = very good).",
     "Are you receiving any threats or unsafe contact right now?\nReply YES or NO.",
     "Have you been able to sleep and eat regularly?\nReply OK or DIFFICULT."
 ];
@@ -4033,7 +4033,7 @@ function openSmsCheckIn() {
     const thread = document.getElementById('sms-thread');
     if (thread) {
         thread.innerHTML = '';
-        pushSmsBubble('in', "🔒 Secure SMS from NEXORA CARE (NHAA 14566). You are connected to your care team — replies are confidential.");
+        pushSmsBubble('in', "🔒 Secure SMS from AURAIS CARE (NHAA 14566). You are connected to your care team — replies are confidential.");
     }
     setTimeout(machineSmsQuestion, 600);
 }
@@ -5931,7 +5931,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ============================================================================
-// NEXORA Monitor — Administrator Menu Tab Switcher & AI Assistant
+// AURAIS Monitor — Administrator Menu Tab Switcher & AI Assistant
 // ============================================================================
 let currentMonitorTab = 'dashboard';
 
@@ -6163,14 +6163,14 @@ function buildClinicalAiSystemPrompt() {
     const lang = NEX_LANG_NAMES[currentLang] || currentLang || 'English';
 
     const base = isAdmin ? [
-        'You are the NEXORA Governance Assistant, embedded in the MoSJE district-oversight analytics dashboard of a survivor-safety platform in India.',
+        'You are the AURAIS Governance Assistant, embedded in the MoSJE district-oversight analytics dashboard of a survivor-safety platform in India.',
         '',
         'SCOPE — STRICT',
         '- You answer only about district-level, aggregate platform data.',
         '- You are explicitly NOT permitted to access individual survivor case files, names, tokens, case IDs, journals or check-in detail. If asked for them, decline and direct the user to the Clinical role.',
         '- Never invent districts, counts or DDS scores. Use only the figures in the DATA block below; if an answer is not there, say it is not available.'
     ] : [
-        'You are the NEXORA Clinical Assistant, embedded in a counsellor workspace for a survivor-safety platform in India (DLSA / MoSJE, connected to Tele-MANAS 14416).',
+        'You are the AURAIS Clinical Assistant, embedded in a counsellor workspace for a survivor-safety platform in India (DLSA / MoSJE, connected to Tele-MANAS 14416).',
         '',
         'SCOPE',
         '- You support a qualified clinician or counsellor with triage, prioritisation, summarisation and intervention planning.',
@@ -6370,14 +6370,14 @@ function buildGovAskSystemPrompt() {
     const lang = NEX_LANG_NAMES[currentLang] || currentLang || 'English';
 
     const head = isAdmin ? [
-        'You are the NEXORA analytics assistant inside a MoSJE district-oversight dashboard for a survivor-safety platform in India.',
+        'You are the AURAIS analytics assistant inside a MoSJE district-oversight dashboard for a survivor-safety platform in India.',
         '',
         'SCOPE — STRICT',
         '- Answer only about district-level, aggregate platform data.',
         '- You are NOT permitted to access individual survivor case files, names, tokens, case IDs, journals or check-in detail. If asked for them, decline and point the user to the Clinical role.',
         '- Never invent a district, a count or a DDS score. Use only the DATA block below; if a figure is not there, say it is not available.'
     ] : [
-        'You are the NEXORA analytics assistant inside a clinician workspace for a survivor-safety platform in India (DLSA / MoSJE).',
+        'You are the AURAIS analytics assistant inside a clinician workspace for a survivor-safety platform in India (DLSA / MoSJE).',
         '',
         'SCOPE',
         '- Answer about district-level governance figures and anonymised case aggregates.',
@@ -6568,7 +6568,7 @@ function generateNexoraAiTriageResponse(query) {
 
     if (q.includes('ddi') || q.includes('score') || q.includes('algorithm') || q.includes('formula')) {
         return `
-            <p class="font-bold text-teal-300">📊 NEXORA Dynamic Distress Index (DDI) Architecture:</p>
+            <p class="font-bold text-teal-300">📊 AURAIS Dynamic Distress Index (DDI) Architecture:</p>
             <p class="text-slate-300">The DDI Score (0-100) combines multimodal objective signals:</p>
             <ul class="list-disc pl-4 space-y-1 text-slate-300">
                 <li><strong>Baseline Questionnaire (40%):</strong> Sleep quality, perceived personal safety, trial anticipatory anxiety, and isolation index.</li>
@@ -6604,7 +6604,7 @@ function renderNexoraAiGreeting() {
             </div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-none p-4 max-w-2xl text-slate-200 text-xs leading-relaxed space-y-2 shadow-lg">
                 <p class="font-medium text-slate-100">
-                    Hello! I'm the NEXORA AI Assistant. I'm here to listen, understand and triage cases to ensure survivors get the right support, and investigate the psychological distress markers.
+                    Hello! I'm the AURAIS AI Assistant. I'm here to listen, understand and triage cases to ensure survivors get the right support, and investigate the psychological distress markers.
                 </p>
                 <p class="text-slate-300">
                     You can tell me which case you want to review, ask for a risk summary, or let me help you figure out what to do next.
@@ -6652,7 +6652,7 @@ function saveMonitorSettings() {
         saveUserProfile(profile);
     }
 
-    alert('✓ NEXORA Monitor preferences and escalation thresholds updated successfully.');
+    alert('✓ AURAIS Monitor preferences and escalation thresholds updated successfully.');
 }
 
 
@@ -7730,7 +7730,7 @@ function exportAnonymizedReport() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `NEXORA_MoSJE_Statutory_Compliance_Report_Anonymized_${Date.now()}.csv`);
+    link.setAttribute("download", `AURAIS_Clinical_Compliance_Report_Anonymized_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -9806,7 +9806,7 @@ function loadNexAiConfigFile() {
 function buildNexSystemPrompt() {
     const lang = NEX_LANG_NAMES[currentLang] || currentLang || 'English';
     return [
-        'You are NEX, the empathetic AI companion inside NEXORA — a survivor-safety and mental-wellbeing app used in India (MoSJE / SIH-26094 aligned, connected to Tele-MANAS 14416).',
+        'You are NEX, the empathetic AI companion inside AURAIS — a survivor-safety and mental-wellbeing app used in India (MoSJE / SIH-26094 aligned, connected to Tele-MANAS 14416).',
 
         'WHO YOU ARE',
         '- Warm, plain and human. Speak like a trusted friend, never like a chatbot or a form.',
@@ -11169,7 +11169,7 @@ function submitConversationalAnswer(answerText) {
 function buildJournalAiSystemPrompt() {
     const lang = NEX_LANG_NAMES[currentLang] || currentLang || 'English';
     return [
-        'You write a short, warm reflection inside NEXORA, a survivor-safety and wellbeing app used in India. The person reading it has just finished a wellbeing check-in and is often going through court cases, intimidation or financial stress.',
+        'You write a short, warm reflection inside AURAIS, a survivor-safety and wellbeing app used in India. The person reading it has just finished a wellbeing check-in and is often going through court cases, intimidation or financial stress.',
         '',
         'YOU ARE NOT A CLINICIAN',
         '- Never diagnose, never name a disorder, never mention medication or treatment.',
@@ -12128,7 +12128,7 @@ window.addEventListener('hashchange', () => {
 })();
 
 // ============================================================================
-// NEXORA UNIVERSAL AMBIENT BACKGROUND ENGINE & CONTROLLER
+// AURAIS UNIVERSAL AMBIENT BACKGROUND ENGINE & CONTROLLER
 // Singleton controller managing switchable canvas engines, chromatic themes,
 // and route-persistent ambient visuals.
 // ============================================================================
@@ -13804,7 +13804,7 @@ function togglePanicDecoy() {
         if (decoy.classList.contains('active')) {
             document.title = "Weather & News Portal";
         } else {
-            document.title = "NEXORA — Sentient Aware";
+            document.title = "AURAIS — Sentient Emotional Shield";
         }
     }
 }
@@ -14744,8 +14744,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Decode title once
     try {
         const main = document.getElementById('main-title');
-        if (main && main.textContent.trim() === 'NEXORA' && localStorage.getItem('nexora_hyper_once') !== '1') {
-            hyperDecode(main, 'NEXORA');
+        if (main && (main.textContent.trim() === 'AURAIS' || main.textContent.trim() === 'NEXORA') && localStorage.getItem('nexora_hyper_once') !== '1') {
+            hyperDecode(main, 'AURAIS');
             localStorage.setItem('nexora_hyper_once', '1');
         }
     } catch (e) {}

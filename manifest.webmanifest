@@ -1,7 +1,7 @@
 {
-  "name": "NEXORA — Sentient Aware",
-  "short_name": "NEXORA",
-  "description": "AI-powered dynamic mental health monitoring and distress prediction for victims of atrocities (SIH 2026, Problem ID 26094).",
+  "name": "AURAIS — Sentient Emotional Shield",
+  "short_name": "AURAIS",
+  "description": "AI-powered dynamic mental health monitoring, acoustic distress prediction, and autonomous emotional resilience.",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
@@ -10,7 +10,7 @@
   "background_color": "#03040a",
   "theme_color": "#03040a",
   "lang": "en",
-  "categories": ["health", "safety", "government"],
+  "categories": ["health", "safety", "ai"],
   "icons": [
     {
       "src": "icon-192.png",

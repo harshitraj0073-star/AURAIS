@@ -1,61 +1,54 @@
-# NEXORA — Sentient Aware
+# AURAIS — Sentient Emotional Resilience & Distress Triage System
 
-A calm, ambient mental-health & emotional-resilience assistant. Dark glass UI, living background engines, breathing exercises, empathetic chat, multi-channel distress monitoring, and role-based dashboards for survivors, clinical staff, and governance.
+**AURAIS** (pronounced *aw-RAY-iss*, from *Aura* + *Aegis*) is an autonomous, sentient mental-health monitoring and crisis-intervention platform. Engineered by **Harshit Raj** as a production-grade personal project.
 
-> 🌍 **Live**: <https://harshitraj0073-star.github.io/NEXORA/>
->
-> 🖥️ **Local**: [http://localhost:3000](http://localhost:3000)
-
----
-
-## 🚀 Run it locally
-
-```bash
-# from the project root
-python3 -m http.server 3000
-```
-
-Then open **<http://localhost:3000>**.
-
-The page pulls Tailwind CSS and Chart.js from CDNs, so it needs internet.
-
-## ✨ Highlights
-
-- **Sentient Ambient Engine** — switchable animated backgrounds in the *Ambient Studio* (bottom-left button): Sentient Aura, Neural Synapse, Fluid Smoke, Aurora Borealis, Dot Matrix, Noise Gradient, Deep Field, **Matrix Rain**, **Retro Neon Grid**, **Warp Drive** — plus Light Rays, Cursor Orb & Ticking Alerts extras.
-- **Chromatic themes** — Cyber Cyan, Neural Violet, Obsidian Emerald, Solar Amber, Deep Crimson.
-- **Breathing ripples** — sonar rings synced to a 4-7-8 breathing cycle with per-phase color, phase chips, and a confetti celebration after 3 full cycles.
-- **Aurora title + word rotate** — flowing gradient on the "NEXORA" wordmark, cycling *Breathe · Reflect · Connect · Heal*.
-- **Border-beam role cards** — luminous borders + cursor glare on the Survivor / Clinical / Governance amphitheater.
-- **AI companions** — NEX empathetic chat with crisis detection, multi-language, 24/7 helpline access.
-- **Multi-channel monitoring (SIH-26094)** — Web Portal, Chatbot, SMS, IVRS, Mobile App & Helpline feed a longitudinal distress timeline.
-- **Analytics & governance** — distress trend charts, radar diagnostics, sankey flows, district resilience, compensation treasury.
-
-## 🧭 Sections
-
-| Mode | Access | Purpose |
-|------|--------|---------|
-| Survivor / Patient | `loginAsRole('victim')` | Check-in, breathing, chat, profile |
-| Clinical / Counselor | `loginAsRole('counselor')` | Case queue, AI triage, intervention, diagnostics |
-| Governance / Admin | `loginAsRole('admin')` | Command center, telemetry, treasury, policy |
-
-## 🛠 Tech
-
-Static PWA — plain **HTML / CSS / JavaScript** + **Tailwind CDN** + **Chart.js CDN** + Canvas animation engines, with a service worker and web manifest.
-
-Settings are remembered in `localStorage` (language, ambient engine, theme, opacity).
-
-## 📦 Repo layout
-
-```
-nextrails-mains/
-├── index.html         # main app (NEXORA — Sentient Aware)
-├── script.js          # orchestration + ambient canvas engines
-├── style.css          # design system + animations
-├── service-worker.js  # PWA offline shell
-├── manifest.webmanifest
-└── NEXORA-…-main/     # nested React (Vite) NEXORA project
-```
+> 🌍 **Live Application**: <https://harshitraj0073-star.github.io/AURAIS/>  
+> 💻 **Local Development**: `python3 -m http.server 3000` -> [http://localhost:3000](http://localhost:3000)
 
 ---
 
-Made with care for safety and calm.
+## 💡 The Story
+Originally conceived during a Smart India Hackathon problem space, the early team prototype was simple and fell short. Rather than letting the idea die, Harshit took full ownership, went back to first principles, and rebuilt the entire platform from the ground up as a solo engineer — integrating living ambient canvas shaders, real-time acoustic vocal biomarker analysis, multi-channel triage telemetry, and localized multi-language AI companions.
+
+---
+
+## ✨ System Architecture & Highlights
+
+- **Universal Ambient Shader Studio** — 10 switchable, hardware-accelerated canvas background engines (Sentient Aura, Neural Synapse, Fluid Smoke, Aurora Borealis, Dot Matrix, Noise Gradient, Deep Field, Matrix Rain, Retro Neon Grid, Warp Drive) with zero CPU choke.
+- **Acoustic Biomarker Analysis** — Real-time vocal pitch jitter, micro-shimmer, and tremor frequency tracking for immediate physiological distress classification.
+- **Autonomous Crisis Detection** — Multi-tiered risk triage (`stable`, `moderate`, `critical`) that automatically surfaces de-escalation protocols and emergency helplines upon detecting intimidation or acute distress.
+- **Synchronized 4-7-8 Breathing Engine** — Interactive sonar ripples with haptic sound synthesis, phase progression chips, and reward triggers.
+- **Multi-Role Cockpits**:
+  - **Survivor / Citizen Workspace**: Private check-ins, acoustic journal, grounding exercises, and empathetic companion.
+  - **Clinical / Counselor Command**: Longitudinal patient distress tracking, radar diagnostics, and AI clinical triage.
+  - **Administrative & Governance Telemetry**: District-level distress heatmaps, compensation disbursement velocity, and statutory compliance reporting.
+- **Offline-First PWA**: Fully functional offline through a dedicated service worker (`aurais-v1`) and web manifest.
+
+---
+
+## 🧭 Role Access
+
+| Role | Console Invocation | Focus Area |
+| :--- | :--- | :--- |
+| **Survivor / Citizen** | `switchView('victim')` | Private self-report, grounding, empathetic companion |
+| **Caseworker / Counselor** | `switchView('caseworker')` | Longitudinal dossier, triage queue, clinical notes |
+| **System Administrator** | `switchView('admin')` | District health analytics, telemetry, policy controls |
+| **Judicial / Compliance** | `switchView('judicial')` | Case milestone timeline, legal safeguards, compliance |
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend Core**: Vanilla HTML5, CSS3 Glassmorphism System, High-Performance Canvas 2D / WebGL Engines.
+- **Frameworks & Libs**: Tailwind CSS, Chart.js, Web Audio API Synthesizer, Web Speech Synthesis & Recognition API.
+- **AI Core**: Empathetic multi-turn conversational engine with optional Google Gemini Flash API integration.
+- **Localization**: Native English, Hindi (हिंदी), and Marathi (मराठी).
+- **Deployment**: Zero-dependency GitHub Pages edge deployment.
+
+---
+
+## 👤 Author
+
+**Harshit Raj**  
+B.Tech Computer Science & Engineering, Ajeenkya DY Patil University (ADYPU), Pune  
+GitHub: [@harshitraj0073-star](https://github.com/harshitraj0073-star)
