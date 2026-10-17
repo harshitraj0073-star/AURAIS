@@ -2828,8 +2828,10 @@ function updateBodyBackground(viewName) {
 
     if (!body) return;
 
-    // Maintain celestial space background across all views
-    body.className = "bg-[#06080e] text-slate-100 font-sans min-h-screen flex flex-col relative overflow-x-hidden selection:bg-sky-500 selection:text-white";
+    // Maintain celestial space background across all views while preserving 3D & motion state classes
+    const keepHyper3D = window._hyper3DActive !== false;
+    const keepLite = body.classList.contains('lite-motion');
+    body.className = "bg-[#06080e] text-slate-100 font-sans min-h-screen flex flex-col relative overflow-x-hidden selection:bg-sky-500 selection:text-white" + (keepHyper3D ? " hyper-3d" : "") + (keepLite ? " lite-motion" : "");
     if (header) header.className = "relative z-50 border-b border-white/10 bg-slate-950/60 backdrop-blur-xl shadow-md text-slate-200 transition-all duration-300";
     if (langBox) langBox.className = "flex items-center gap-1.5 bg-slate-900/80 border border-white/10 rounded-xl px-3 py-1.5 text-xs shadow-xs backdrop-blur-sm transition-all";
     if (langLabel) langLabel.className = "font-bold text-slate-300 mr-1 hidden sm:inline";
@@ -13208,6 +13210,7 @@ const NexSpatial = {
 
   _tick() {
     this._raf = null;
+    if (window._hyper3DActive) return;
     const w = window.innerWidth || 1;
     const h = window.innerHeight || 1;
 
@@ -15044,6 +15047,13 @@ window.appendRetroTerminalCommand = appendRetroTerminalCommand;
 // 17. SMOOTH UI NEURO-RESILIENCE JOURNAL BLOG MODAL
 // ---------------------------------------------------------------------------
 const _smoothBlogArticles = {
+    'vagus': {
+        icon: '🌿',
+        title: 'How 4-7-8 Breathing Resets Your Vagal Tone in 90 Seconds',
+        badge: 'Neurobiology • 3 Min Read',
+        desc: 'When your nervous system detects threat or emotional trauma, the sympathetic branch triggers an immediate surge of adrenaline and cortisol. By inhaling for 4 seconds, holding for 7 seconds (maximizing alveolar oxygen exchange), and exhaling slowly for 8 seconds, you mechanically stimulate the Vagus Nerve (Cranial Nerve X). This releases acetylcholine directly onto the sinoatrial node, slowing heart rate and restoring prefrontal cortex executive calm within 90 seconds.',
+        action: () => { closeAppleCardModal(); toggleBreathingModal(); }
+    },
     'vagal-reset': {
         icon: '🌿',
         title: 'How 4-7-8 Breathing Resets Your Vagal Tone in 90 Seconds',
@@ -15051,12 +15061,26 @@ const _smoothBlogArticles = {
         desc: 'When your nervous system detects threat or emotional trauma, the sympathetic branch triggers an immediate surge of adrenaline and cortisol. By inhaling for 4 seconds, holding for 7 seconds (maximizing alveolar oxygen exchange), and exhaling slowly for 8 seconds, you mechanically stimulate the Vagus Nerve (Cranial Nerve X). This releases acetylcholine directly onto the sinoatrial node, slowing heart rate and restoring prefrontal cortex executive calm within 90 seconds.',
         action: () => { closeAppleCardModal(); toggleBreathingModal(); }
     },
+    'acoustic': {
+        icon: '🎙️',
+        title: 'Understanding Vocal Jitter, Shimmer & Micro-Tremor Biomarkers',
+        badge: 'Acoustic AI • 4 Min Read',
+        desc: 'Subtle involuntary tension in the cricothyroid and thyroarytenoid vocal muscles causes micro-perturbations in fundamental frequency (Jitter) and amplitude (Shimmer). AURAIS analyzes these non-invasive acoustic biomarkers alongside 5-4-3-2-1 somatic grounding to detect emotional hyperarousal early and offer calming support.',
+        action: () => { closeAppleCardModal(); openGroundingDeckModal(); }
+    },
     'sensory-grounding': {
         icon: '🤲',
         title: 'Why 5-4-3-2-1 Sensory Grounding Stops Amygdala Hijack',
         badge: 'Somatic Anchor • 4 Min Read',
         desc: 'During acute distress or flashbacks, the amygdala overrides rational thought and traps attention inside internal threat loops. The 5-4-3-2-1 protocol forces the thalamus to route exteroceptive sensory data (5 visual details, 4 tactile textures, 3 distinct sounds, 2 scents, 1 taste) directly to the dorsolateral prefrontal cortex, breaking rumination and anchoring your awareness safely in the present room.',
         action: () => { closeAppleCardModal(); openGroundingDeckModal(); }
+    },
+    'rights': {
+        icon: '⚖️',
+        title: 'Witness Protection, In-Camera Trials & Statutory Relief (NHAA 14566)',
+        badge: 'Legal Shield • 2 Min Read',
+        desc: 'Survivors and witnesses have guaranteed statutory rights to confidential in-camera court proceedings, immediate travel and subsistence allowances, and zero-intimidation escorts coordinated through District Vigilance & Monitoring Committees (DVMC) and the 24/7 NHAA 14566 helpline.',
+        action: () => { closeAppleCardModal(); openBinauralModal(); }
     },
     'theta-entrainment': {
         icon: '🎧',
@@ -15076,6 +15100,250 @@ function openSmoothBlogModal(topic) {
 window.openSmoothBlogModal = openSmoothBlogModal;
 
 // ---------------------------------------------------------------------------
+// 18. OPTION A: FULL IMMERSIVE 3D SPATIAL ENGINE (EVERY ELEMENT 3D)
+// Global Camera Tilt • Universal Stereoscopic Card Extrusion • 3D Polyhedron
+// ---------------------------------------------------------------------------
+window._hyper3DActive = true;
+
+function toggleHyper3DMode() {
+    window._hyper3DActive = !window._hyper3DActive;
+    document.body.classList.toggle('hyper-3d', window._hyper3DActive);
+    const label = document.getElementById('hyper-3d-label');
+    if (label) {
+        label.textContent = window._hyper3DActive ? '3D: MAX' : '3D: OFF';
+    }
+    if (!window._hyper3DActive) {
+        document.documentElement.style.setProperty('--stage-rx', '0deg');
+        document.documentElement.style.setProperty('--stage-ry', '0deg');
+        document.documentElement.style.setProperty('--stage-px', '0px');
+        document.documentElement.style.setProperty('--shadow-x', '0px');
+        document.documentElement.style.setProperty('--shadow-y', '24px');
+        document.querySelectorAll('.sentient-card, .apple-card-item, .smooth-blog-card, .retro-terminal-window').forEach(el => {
+            el.style.transform = '';
+        });
+    }
+    try {
+        if (typeof showToast === 'function') {
+            showToast(window._hyper3DActive ? '🧊 Full Immersive 3D Spatial Engine: MAX' : '🧊 3D Spatial Engine: Standard');
+        }
+    } catch (e) {}
+}
+window.toggleHyper3DMode = toggleHyper3DMode;
+
+function initFullSpatial3DEngine() {
+    const root = document.documentElement;
+    let targetNX = 0, targetNY = 0;
+    let curNX = 0, curNY = 0;
+    let hoveredCard = null;
+
+    const CARD_SELECTOR = '.sentient-card:not(.role-pillar), .apple-card-item, .smooth-blog-card, .retro-terminal-window, #channel-panel .grid > div, #channel-panel .grid > button';
+
+    window.addEventListener('mousemove', (e) => {
+        if (!window._hyper3DActive || (typeof _motionAllowed === 'function' && !_motionAllowed())) return;
+        const w = window.innerWidth || 1;
+        const h = window.innerHeight || 1;
+        targetNX = (e.clientX / w - 0.5) * 2; // [-1, 1]
+        targetNY = (e.clientY / h - 0.5) * 2; // [-1, 1]
+
+        // Direct 3D tilt on whichever card is under the pointer
+        const card = e.target.closest ? e.target.closest(CARD_SELECTOR) : null;
+        if (hoveredCard && hoveredCard !== card) {
+            hoveredCard.style.transform = '';
+            hoveredCard.style.setProperty('--glare-opacity', '0');
+            hoveredCard = null;
+        }
+        if (card) {
+            hoveredCard = card;
+            const rect = card.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+                const relX = (e.clientX - rect.left) / rect.width;
+                const relY = (e.clientY - rect.top) / rect.height;
+                const rotY = (relX - 0.5) * 14;
+                const rotX = (0.5 - relY) * 14;
+                card.style.setProperty('--glare-x', `${(relX * 100).toFixed(1)}%`);
+                card.style.setProperty('--glare-y', `${(relY * 100).toFixed(1)}%`);
+                card.style.setProperty('--glare-opacity', '1');
+                card.style.transform = `perspective(950px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateZ(16px)`;
+            }
+        }
+    }, { passive: true });
+
+    // Smooth 60fps camera & directional point-light shadow interpolation
+    function cameraTick() {
+        if (window._hyper3DActive && (typeof _motionAllowed !== 'function' || _motionAllowed())) {
+            curNX += (targetNX - curNX) * 0.1;
+            curNY += (targetNY - curNY) * 0.1;
+
+            const stageRX = (-curNY * 6.5).toFixed(2);
+            const stageRY = (curNX * 8.5).toFixed(2);
+            const stagePX = (-curNX * 32).toFixed(1);
+            const shadowX = (-curNX * 18).toFixed(1);
+            const shadowY = (24 - curNY * 14).toFixed(1);
+
+            root.style.setProperty('--stage-rx', `${stageRX}deg`);
+            root.style.setProperty('--stage-ry', `${stageRY}deg`);
+            root.style.setProperty('--stage-px', `${stagePX}px`);
+            root.style.setProperty('--shadow-x', `${shadowX}px`);
+            root.style.setProperty('--shadow-y', `${shadowY}px`);
+        }
+        requestAnimationFrame(cameraTick);
+    }
+    requestAnimationFrame(cameraTick);
+
+    // 3D Spatial Scroll Cylinder: cards curve gently at top/bottom of viewport
+    function updateScrollCylinder() {
+        if (!window._hyper3DActive || (typeof _motionAllowed === 'function' && !_motionAllowed())) return;
+        const scrollY = window.scrollY || 0;
+        root.style.setProperty('--grid-scroll-y', `${(scrollY * 0.35) % 56}px`);
+
+        const vh = window.innerHeight || 800;
+        const cards = document.querySelectorAll('.sentient-card:not(.role-pillar), .smooth-blog-card, .retro-terminal-window');
+        cards.forEach(card => {
+            if (card === hoveredCard) return;
+            const rect = card.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            if (rect.bottom < -100 || rect.top > vh + 100) return;
+
+            const centerOffset = ((rect.top + rect.height / 2) - vh / 2) / (vh / 2); // [-1, 1]
+            const clamped = Math.max(-1.2, Math.min(1.2, centerOffset));
+            const cylinderTiltX = -clamped * 7.5;
+            const cylinderZ = (1 - Math.min(1, Math.abs(clamped))) * 10 - 6;
+            card.style.transform = `perspective(1100px) rotateX(${cylinderTiltX.toFixed(2)}deg) rotateY(${(curNX * 3.5).toFixed(2)}deg) translateZ(${cylinderZ.toFixed(1)}px)`;
+        });
+    }
+
+    window.addEventListener('scroll', updateScrollCylinder, { passive: true });
+    document.querySelectorAll('.overflow-y-auto').forEach(sc => {
+        sc.addEventListener('scroll', updateScrollCylinder, { passive: true });
+    });
+    setTimeout(updateScrollCylinder, 250);
+}
+
+// ---------------------------------------------------------------------------
+// 19. INTERACTIVE 3D GEODESIC POLYHEDRON & GYRO RINGS ON #sentient-core-canvas
+// ---------------------------------------------------------------------------
+function initPolyhedron3DCore() {
+    const canvas = document.getElementById('sentient-core-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    function resize() {
+        canvas.width = window.innerWidth || 1280;
+        canvas.height = window.innerHeight || 800;
+    }
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    // Golden ratio icosahedron vertices + inner dodecahedral shell
+    const phi = (1 + Math.sqrt(5)) / 2;
+    const rawVerts = [
+        [-1,  phi, 0], [ 1,  phi, 0], [-1, -phi, 0], [ 1, -phi, 0],
+        [ 0, -1,  phi], [ 0,  1,  phi], [ 0, -1, -phi], [ 0,  1, -phi],
+        [ phi, 0, -1], [ phi, 0,  1], [-phi, 0, -1], [-phi, 0,  1]
+    ];
+    const vertices = rawVerts.map(([x, y, z]) => {
+        const len = Math.sqrt(x * x + y * y + z * z);
+        return { x: x / len, y: y / len, z: z / len };
+    });
+
+    // Build edges between adjacent icosahedron vertices
+    const edges = [];
+    for (let i = 0; i < vertices.length; i++) {
+        for (let j = i + 1; j < vertices.length; j++) {
+            const dx = vertices[i].x - vertices[j].x;
+            const dy = vertices[i].y - vertices[j].y;
+            const dz = vertices[i].z - vertices[j].z;
+            const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (d < 1.25) edges.push([i, j]);
+        }
+    }
+
+    let angleX = 0.3, angleY = 0.5, angleZ = 0.1;
+    let mouseTargetX = 0, mouseTargetY = 0;
+
+    window.addEventListener('mousemove', (e) => {
+        mouseTargetY = ((e.clientX / (window.innerWidth || 1)) - 0.5) * 1.4;
+        mouseTargetX = ((e.clientY / (window.innerHeight || 1)) - 0.5) * 1.4;
+    }, { passive: true });
+
+    function rotate3D(v, ax, ay, az) {
+        // Rotate X
+        let y1 = v.y * Math.cos(ax) - v.z * Math.sin(ax);
+        let z1 = v.y * Math.sin(ax) + v.z * Math.cos(ax);
+        let x1 = v.x;
+        // Rotate Y
+        let x2 = x1 * Math.cos(ay) + z1 * Math.sin(ay);
+        let z2 = -x1 * Math.sin(ay) + z1 * Math.cos(ay);
+        let y2 = y1;
+        // Rotate Z
+        let x3 = x2 * Math.cos(az) - y2 * Math.sin(az);
+        let y3 = x2 * Math.sin(az) + y2 * Math.cos(az);
+        let z3 = z2;
+        return { x: x3, y: y3, z: z3 };
+    }
+
+    function renderPolyhedron() {
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        if (!window._hyper3DActive || (typeof _motionAllowed === 'function' && !_motionAllowed())) {
+            requestAnimationFrame(renderPolyhedron);
+            return;
+        }
+
+        angleY += 0.006 + mouseTargetY * 0.008;
+        angleX += 0.004 + mouseTargetX * 0.008;
+        angleZ += 0.002;
+
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) * 0.23;
+        const fov = 420;
+
+        // Project 3D vertices to 2D screen with depth
+        const projected = vertices.map(v => {
+            const r = rotate3D({ x: v.x * radius, y: v.y * radius, z: v.z * radius }, angleX, angleY, angleZ);
+            const scale = fov / (fov + r.z + radius * 0.5);
+            return {
+                sx: cx + r.x * scale,
+                sy: cy + r.y * scale,
+                z: r.z,
+                scale
+            };
+        });
+
+        // Draw 3D Wireframe Edges with depth-graded luminescence
+        edges.forEach(([i, j]) => {
+            const p1 = projected[i];
+            const p2 = projected[j];
+            const avgZ = (p1.z + p2.z) / 2;
+            const depthAlpha = Math.max(0.08, Math.min(0.62, 0.34 - (avgZ / radius) * 0.25));
+            ctx.strokeStyle = `rgba(34, 211, 238, ${depthAlpha.toFixed(3)})`;
+            ctx.lineWidth = Math.max(0.8, 2.1 * ((p1.scale + p2.scale) / 2));
+            ctx.beginPath();
+            ctx.moveTo(p1.sx, p1.sy);
+            ctx.lineTo(p2.sx, p2.sy);
+            ctx.stroke();
+        });
+
+        // Draw Glowing 3D Vertex Nodes
+        projected.forEach(p => {
+            const nodeAlpha = Math.max(0.2, Math.min(0.9, 0.55 - (p.z / radius) * 0.35));
+            const r = Math.max(2, 4.2 * p.scale);
+            ctx.fillStyle = `rgba(165, 243, 252, ${nodeAlpha.toFixed(3)})`;
+            ctx.beginPath();
+            ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        requestAnimationFrame(renderPolyhedron);
+    }
+    requestAnimationFrame(renderPolyhedron);
+}
+
+// ---------------------------------------------------------------------------
 // BOOT THE FULL 2026 AI UI MASTER SUITE ON LOAD
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
@@ -15090,6 +15358,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try { initUnlumenTiltCards(); } catch (e) {}
     try { initQuantumCursorTrail(); } catch (e) {}
     try { initMagicAnimatedList(); } catch (e) {}
+    try { initFullSpatial3DEngine(); } catch (e) {}
+    try { initPolyhedron3DCore(); } catch (e) {}
 
     // Decode title once
     try {
@@ -15100,4 +15370,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {}
 });
+
 

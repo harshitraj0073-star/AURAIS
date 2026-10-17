@@ -3890,3 +3890,294 @@ body.lite-motion .border-beam-always::before {
   animation: none !important;
 }
 
+/* ============================================================================
+   OPTION A: FULL IMMERSIVE 3D SPATIAL ENGINE (EVERY ELEMENT 3D)
+   Global 3D Camera Stage • Multi-Plane Stereoscopic Z-Extrusion • 3D Horizon Grid
+   Physical Glass Slab Bevels • Dynamic Point-Light Cast Shadows • 3D Scroll Dolly
+   ============================================================================ */
+
+/* --- 1. 3D Perspective Floor & Ceiling Horizon Grids --- */
+.sentient-environment {
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.spatial-3d-floor,
+.spatial-3d-ceiling {
+  position: absolute;
+  left: -30%;
+  width: 160%;
+  height: 65vh;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(34, 211, 238, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(168, 85, 247, 0.16) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transition: transform 0.25s ease-out, opacity 0.4s ease;
+  opacity: 0;
+}
+
+body.hyper-3d .spatial-3d-floor {
+  bottom: -18vh;
+  opacity: 0.75;
+  transform-origin: center bottom;
+  transform: rotateX(74deg) translateZ(-120px) translateY(var(--grid-scroll-y, 0px)) translateX(var(--stage-px, 0px));
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 90%, #000 15%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 90%, #000 15%, transparent 75%);
+  animation: spatial-floor-march 4s linear infinite;
+}
+
+body.hyper-3d .spatial-3d-ceiling {
+  top: -22vh;
+  opacity: 0.42;
+  transform-origin: center top;
+  transform: rotateX(-74deg) translateZ(-160px) translateX(calc(var(--stage-px, 0px) * -1));
+  -webkit-mask-image: radial-gradient(ellipse 65% 75% at 50% 10%, #000 10%, transparent 70%);
+  mask-image: radial-gradient(ellipse 65% 75% at 50% 10%, #000 10%, transparent 70%);
+  animation: spatial-floor-march 6s linear infinite reverse;
+}
+
+@keyframes spatial-floor-march {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 56px; }
+}
+
+/* --- 2. Global 3D Viewport Camera Stage on Active Views --- */
+body.hyper-3d #intro-view,
+body.hyper-3d #role-select-view,
+body.hyper-3d #victim-view,
+body.hyper-3d #victim-view > main,
+body.hyper-3d #tab-pane-dashboard,
+body.hyper-3d #tab-pane-cases,
+body.hyper-3d #tab-pane-analytics,
+body.hyper-3d #tab-pane-command,
+body.hyper-3d #tab-pane-settings,
+body.hyper-3d #tab-pane-reports {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+body.hyper-3d #awakening-container {
+  transform-style: preserve-3d;
+  transform: rotateX(var(--stage-rx, 0deg)) rotateY(var(--stage-ry, 0deg));
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hero Landing Page Multi-Tier 3D Floating Planes */
+body.hyper-3d #awakening-container > div:first-child {
+  transform: translateZ(48px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 3px 0 rgba(6, 182, 212, 0.35);
+}
+
+body.hyper-3d #main-title {
+  transform: translateZ(85px);
+  filter:
+    drop-shadow(0 2px 0 rgba(34, 211, 238, 0.45))
+    drop-shadow(0 5px 0 rgba(14, 116, 144, 0.5))
+    drop-shadow(0 9px 0 rgba(30, 27, 75, 0.7))
+    drop-shadow(var(--shadow-x, 0px) 22px 38px rgba(0, 0, 0, 0.85));
+}
+
+body.hyper-3d #main-subtitle {
+  transform: translateZ(56px);
+  text-shadow: 0 10px 24px rgba(0, 0, 0, 0.8);
+}
+
+body.hyper-3d #main-description {
+  transform: translateZ(34px);
+  text-shadow: 0 6px 16px rgba(0, 0, 0, 0.75);
+}
+
+body.hyper-3d #main-audio {
+  transform: translateZ(50px);
+}
+
+body.hyper-3d #main-cta {
+  transform: translateZ(72px);
+}
+
+body.hyper-3d .velocity-marquee-wrap {
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(12deg) translateZ(28px);
+  box-shadow:
+    0 6px 0 rgba(6, 182, 212, 0.22),
+    0 20px 45px rgba(0, 0, 0, 0.75),
+    inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+
+/* --- 3. Universal Stereoscopic 3D Cards (Every Card & Container) --- */
+body.hyper-3d .sentient-card,
+body.hyper-3d .apple-card-item,
+body.hyper-3d .smooth-blog-card,
+body.hyper-3d .retro-terminal-window,
+body.hyper-3d #channel-panel .grid > div,
+body.hyper-3d #channel-panel .grid > button {
+  position: relative;
+  transform-style: preserve-3d !important;
+  overflow: visible !important;
+  will-change: transform, box-shadow;
+  border-top: 1px solid rgba(255, 255, 255, 0.34) !important;
+  border-left: 1px solid rgba(34, 211, 238, 0.24) !important;
+  box-shadow:
+    0 3px 0 rgba(15, 35, 65, 0.92),
+    0 7px 0 rgba(6, 15, 32, 0.96),
+    0 10px 0 rgba(2, 6, 16, 0.98),
+    var(--shadow-x, 0px) var(--shadow-y, 26px) 50px -8px rgba(0, 0, 0, 0.85),
+    0 0 32px rgba(6, 182, 212, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.28) !important;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+}
+
+/* Dynamic Specular 3D Light Glare Overlay on Every Card */
+body.hyper-3d .sentient-card::after,
+body.hyper-3d .smooth-blog-card::after,
+body.hyper-3d .retro-terminal-window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  opacity: var(--glare-opacity, 0);
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    340px circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    rgba(255, 255, 255, 0.18),
+    rgba(34, 211, 238, 0.08) 42%,
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+}
+
+/* --- 4. Internal Multi-Tier Stereoscopic Child Pop-Out Layers --- */
+/* Tier A: Main Titles, Headings, & Big KPI Numbers (Z = +36px) */
+body.hyper-3d .sentient-card h2,
+body.hyper-3d .sentient-card h3,
+body.hyper-3d .sentient-card h4,
+body.hyper-3d .sentient-card h5,
+body.hyper-3d .sentient-card .text-stat,
+body.hyper-3d .apple-card-item h4,
+body.hyper-3d .smooth-blog-card h4 {
+  transform: translateZ(34px);
+  text-shadow: 0 8px 18px rgba(0, 0, 0, 0.78);
+  transform-style: preserve-3d;
+}
+
+/* Tier B: Icons, Badges, & Floating Status Chips (Z = +44px) */
+body.hyper-3d .sentient-card .w-10,
+body.hyper-3d .sentient-card .w-12,
+body.hyper-3d .sentient-card .w-16,
+body.hyper-3d .sentient-card .retro-cyber-badge,
+body.hyper-3d .smooth-blog-card .retro-cyber-badge,
+body.hyper-3d .role-pillar .role-layer-icon {
+  transform: translateZ(44px);
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.68));
+}
+
+/* Tier C: Paragraphs, Subtitles & Telemetry Labels (Z = +18px) */
+body.hyper-3d .sentient-card p,
+body.hyper-3d .apple-card-item p,
+body.hyper-3d .smooth-blog-card p {
+  transform: translateZ(18px);
+}
+
+/* Tier D: Interactive Canvases, Waveforms, & 3D Orbit Stages (Z = +28px) */
+body.hyper-3d .bio-oscilloscope-wrap,
+body.hyper-3d .before-after-container,
+body.hyper-3d .scratch-card-wrapper,
+body.hyper-3d .sankey-stream-container,
+body.hyper-3d .district-map-container,
+body.hyper-3d .magic-orbit-stage,
+body.hyper-3d .triage-deck-container {
+  transform: translateZ(28px);
+  box-shadow:
+    0 4px 0 rgba(8, 20, 42, 0.95),
+    0 16px 32px rgba(0, 0, 0, 0.72),
+    inset 0 1px 1px rgba(255, 255, 255, 0.22);
+}
+
+/* Tier E: Physical 3D Extruded Tactile Buttons & Keycaps (Z = +42px) */
+body.hyper-3d .btn,
+body.hyper-3d .btn-retro-cyber,
+body.hyper-3d .command-mod-pill {
+  transform: translateZ(38px);
+  box-shadow:
+    0 4px 0 rgba(4, 12, 28, 0.95),
+    0 9px 20px rgba(0, 0, 0, 0.65),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.18s ease !important;
+}
+
+body.hyper-3d .btn:hover,
+body.hyper-3d .btn-retro-cyber:hover,
+body.hyper-3d .command-mod-pill:hover {
+  transform: translateZ(50px) translateY(-3px) scale(1.03);
+  box-shadow:
+    0 7px 0 rgba(6, 182, 212, 0.45),
+    0 16px 30px rgba(0, 0, 0, 0.78),
+    0 0 22px rgba(34, 211, 238, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+body.hyper-3d .btn:active,
+body.hyper-3d .btn-retro-cyber:active,
+body.hyper-3d .command-mod-pill:active {
+  transform: translateZ(22px) translateY(2px) scale(0.99);
+  box-shadow:
+    0 1px 0 rgba(4, 12, 28, 0.95),
+    0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* --- 5. 3D Floating Top Navigation & Clinical Sidebar --- */
+body.hyper-3d .unlumen-motion-dock {
+  transform: perspective(800px) rotateX(6deg) translateZ(16px);
+  box-shadow:
+    0 4px 0 rgba(8, 22, 46, 0.95),
+    0 14px 32px rgba(0, 0, 0, 0.75),
+    0 0 24px rgba(6, 182, 212, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35);
+}
+
+body.hyper-3d .monitor-nav-btn {
+  transform-style: preserve-3d;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, background 0.2s ease;
+}
+
+body.hyper-3d .monitor-nav-btn:hover,
+body.hyper-3d .monitor-nav-btn.active {
+  transform: perspective(600px) translateZ(18px) translateX(5px) rotateY(-4deg);
+  box-shadow:
+    -3px 4px 0 rgba(6, 182, 212, 0.35),
+    0 10px 22px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Magic Orbit Stage in 3D Perspective Tilt */
+body.hyper-3d .magic-orbit-stage {
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+body.hyper-3d .magic-orbit-ring-outer {
+  transform: rotateX(28deg) rotateY(-12deg);
+}
+body.hyper-3d .magic-orbit-core {
+  transform: translateZ(36px);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.8),
+    0 0 36px rgba(6, 182, 212, 0.5),
+    inset 0 2px 3px rgba(255, 255, 255, 0.45);
+}
+
+/* Disable in Lite Motion or Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .spatial-3d-floor, .spatial-3d-ceiling { display: none !important; }
+}
+body.lite-motion .spatial-3d-floor,
+body.lite-motion .spatial-3d-ceiling {
+  display: none !important;
+}
+
+
