@@ -12258,6 +12258,12 @@ window.AmbientController = {
       case 'warp-drive':
         this.runWarpDrive();
         break;
+      case 'pixel-liquid':
+        this.runPixelLiquid();
+        break;
+      case 'gravity-stars':
+        this.runGravityStars();
+        break;
       default:
         this.runSentientAura();
     }
@@ -12890,6 +12896,119 @@ window.AmbientController = {
       this.animationFrameId = requestAnimationFrame(loop);
     };
     loop();
+  },
+
+  // --------------------------------------------------------------------------
+  // ENGINE 10: PIXEL LIQUID SHADER (Unlumen UI)
+  // Cellular liquid plasma matrix reacting to cursor velocity & harmonic waves
+  // --------------------------------------------------------------------------
+  runPixelLiquid() {
+    if (!this.canvas || !this.ctx) return;
+    this.canvas.style.filter = 'none';
+    const theme = this.getTheme();
+    const cellSize = 24;
+    let time = 0;
+
+    const loop = () => {
+      time += 0.04;
+      const ctx = this.ctx;
+      const w = this.canvas.width;
+      const h = this.canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.globalAlpha = this.activeOpacity;
+
+      const cols = Math.ceil(w / cellSize);
+      const rows = Math.ceil(h / cellSize);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cx = c * cellSize + cellSize / 2;
+          const cy = r * cellSize + cellSize / 2;
+          const dx = cx - this.mouse.x;
+          const dy = cy - this.mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          const wave1 = Math.sin(c * 0.22 + time) * Math.cos(r * 0.22 - time * 0.8);
+          const wave2 = Math.sin(dist * 0.035 - time * 2.2) * Math.max(0, 1 - dist / 280);
+          const intensity = (wave1 * 0.5 + 0.5) * 0.32 + wave2 * 0.65;
+
+          if (intensity > 0.08) {
+            const alpha = Math.min(0.85, Math.max(0.05, intensity));
+            ctx.fillStyle = `rgba(${theme.rgb}, ${alpha.toFixed(3)})`;
+            const pad = Math.max(2, (1 - alpha) * 8);
+            ctx.fillRect(c * cellSize + pad / 2, r * cellSize + pad / 2, cellSize - pad, cellSize - pad);
+          }
+        }
+      }
+
+      ctx.globalAlpha = 1;
+      this.animationFrameId = requestAnimationFrame(loop);
+    };
+    this.animationFrameId = requestAnimationFrame(loop);
+  },
+
+  // --------------------------------------------------------------------------
+  // ENGINE 11: GRAVITY STARS (Unlumen UI)
+  // Deep-space orbital starfield pulled into tangential gravity wells around cursor
+  // --------------------------------------------------------------------------
+  runGravityStars() {
+    if (!this.canvas || !this.ctx) return;
+    this.canvas.style.filter = 'none';
+    const theme = this.getTheme();
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    const stars = Array.from({ length: 110 }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8,
+      size: 1 + Math.random() * 2.2,
+      twinkle: Math.random() * Math.PI * 2
+    }));
+
+    const loop = () => {
+      const ctx = this.ctx;
+      const width = this.canvas.width;
+      const height = this.canvas.height;
+      ctx.fillStyle = 'rgba(2, 4, 12, 0.26)';
+      ctx.fillRect(0, 0, width, height);
+      ctx.globalAlpha = this.activeOpacity;
+
+      stars.forEach(s => {
+        s.twinkle += 0.05;
+        const dx = this.mouse.x - s.x;
+        const dy = this.mouse.y - s.y;
+        const distSq = dx * dx + dy * dy;
+        const dist = Math.sqrt(distSq);
+
+        if (dist < 260 && dist > 18) {
+          const force = (1 - dist / 260) * 0.12;
+          // Tangential swirl + radial pull
+          s.vx += (dx / dist) * force * 0.55 - (dy / dist) * force * 0.85;
+          s.vy += (dy / dist) * force * 0.55 + (dx / dist) * force * 0.85;
+        }
+
+        s.vx *= 0.985;
+        s.vy *= 0.985;
+        s.x += s.vx;
+        s.y += s.vy;
+
+        if (s.x < 0) s.x = width;
+        else if (s.x > width) s.x = 0;
+        if (s.y < 0) s.y = height;
+        else if (s.y > height) s.y = 0;
+
+        const alpha = 0.4 + Math.sin(s.twinkle) * 0.35;
+        ctx.fillStyle = dist < 180 ? theme.primary : `rgba(${theme.rgb}, ${alpha.toFixed(2)})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.globalAlpha = 1;
+      this.animationFrameId = requestAnimationFrame(loop);
+    };
+    this.animationFrameId = requestAnimationFrame(loop);
   }
 };
 
@@ -13671,6 +13790,11 @@ function toggleAmbientExtra(name, enabled) {
         // Start or stop the gentle periodic ambient tick
         if (enabled) startTickingAlerts();
         else stopTickingAlerts();
+    } else if (name === 'quantum-trail') {
+        window._quantumTrailEnabled = !!enabled;
+    } else if (name === 'crt-hud') {
+        const crt = document.getElementById('crt-scanline-overlay');
+        if (crt) crt.classList.toggle('hidden', !enabled);
     }
 }
 
@@ -13698,9 +13822,14 @@ function toggleAmbientExtra(name, enabled) {
             if (el) el.classList.remove('hidden');
         }
         if (saved['ticking']) startTickingAlerts();
+        if (saved['quantum-trail']) window._quantumTrailEnabled = true;
+        if (saved['crt-hud']) {
+            const crt = document.getElementById('crt-scanline-overlay');
+            if (crt) crt.classList.remove('hidden');
+        }
         // Sync the drawer checkboxes
-        ['light-rays', 'cursor-orb', 'ticking'].forEach((k) => {
-            const cb = document.getElementById('toggle-' + (k === 'ticking' ? 'ticking' : k));
+        ['light-rays', 'cursor-orb', 'ticking', 'quantum-trail', 'crt-hud'].forEach((k) => {
+            const cb = document.getElementById('toggle-' + k);
             if (cb) cb.checked = !!saved[k];
         });
     } catch (e) {}
@@ -13838,6 +13967,9 @@ const commandRegistry = [
     { id: 'soundscape', icon: '🎧', title: '432Hz Binaural Soundscape Studio', cat: 'Therapy & Calming', action: () => openBinauralModal() },
     { id: 'emotion_wheel', icon: '🎯', title: '2D Emotion Circumplex Matrix', cat: 'Therapy & Calming', action: () => openEmotionMatrixModal() },
     { id: 'scratch_card', icon: '✨', title: 'Scratch-to-Reveal Daily Secret Mantra', cat: 'Therapy & Calming', action: () => openAppleCard('scratch-card') },
+    { id: 'blog_vagal', icon: '📖', title: 'Read Guide: Vagal Tone & Parasympathetic Reset', cat: 'Neuro-Resilience Journal', action: () => openSmoothBlogModal('vagal-reset') },
+    { id: 'blog_grounding', icon: '📖', title: 'Read Guide: Sensory Grounding & Amygdala Hijack', cat: 'Neuro-Resilience Journal', action: () => openSmoothBlogModal('sensory-grounding') },
+    { id: 'blog_theta', icon: '📖', title: 'Read Guide: 432Hz Theta Acoustic Entrainment', cat: 'Neuro-Resilience Journal', action: () => openSmoothBlogModal('theta-entrainment') },
     { id: 'chat_nex', icon: '💬', title: 'Open NEX Empathetic AI Companion', cat: 'AI & Chat', action: () => toggleNexChat() },
     { id: 'survivor_mode', icon: '🌱', title: 'Go to Survivor Wellness Portal', cat: 'Navigation', action: () => switchView('victim') },
     { id: 'counselor_mode', icon: '🩺', title: 'Go to Clinical Counselor Command', cat: 'Navigation', action: () => { switchView('counselor'); switchMonitorTab('dashboard'); } },
@@ -13848,6 +13980,8 @@ const commandRegistry = [
     { id: 'theme_emerald', icon: '🟢', title: 'Set Theme: Obsidian Emerald', cat: 'Appearance', action: () => setAmbientTheme('obsidian-emerald') },
     { id: 'theme_amber', icon: '🟡', title: 'Set Theme: Solar Amber', cat: 'Appearance', action: () => setAmbientTheme('solar-amber') },
     { id: 'theme_crimson', icon: '🔴', title: 'Set Theme: Deep Crimson', cat: 'Appearance', action: () => setAmbientTheme('deep-crimson') },
+    { id: 'bg_pixel', icon: '💧', title: 'Background Engine: Pixel Liquid (Unlumen Shader)', cat: 'Appearance', action: () => setAmbientEngine('pixel-liquid') },
+    { id: 'bg_stars', icon: '🪐', title: 'Background Engine: Gravity Stars (Unlumen Shader)', cat: 'Appearance', action: () => setAmbientEngine('gravity-stars') },
     { id: 'bg_matrix', icon: '💊', title: 'Background Engine: Matrix Rain', cat: 'Appearance', action: () => setAmbientEngine('matrix-rain') },
     { id: 'bg_retro', icon: '🟣', title: 'Background Engine: Retro Neon Grid', cat: 'Appearance', action: () => setAmbientEngine('retro-neon') },
     { id: 'bg_warp', icon: '🌀', title: 'Background Engine: Warp Drive', cat: 'Appearance', action: () => setAmbientEngine('warp-drive') },
@@ -14730,6 +14864,218 @@ function initMagneticButtons() {
 }
 
 // ---------------------------------------------------------------------------
+// 13. UNLUMEN UI MOTION DOCK & 3D TILT GLARE ENGINE
+// ---------------------------------------------------------------------------
+function initUnlumenMotionDock() {
+    const dock = document.getElementById('aurais-motion-dock');
+    const pill = document.getElementById('unlumen-dock-pill');
+    if (!dock || !pill) return;
+
+    const btns = Array.from(dock.querySelectorAll('.unlumen-dock-btn'));
+    function movePillTo(btn) {
+        if (!btn) return;
+        const dockRect = dock.getBoundingClientRect();
+        const btnRect = btn.getBoundingClientRect();
+        if (!dockRect.width || !btnRect.width) return;
+        const left = btnRect.left - dockRect.left;
+        pill.style.width = `${btnRect.width}px`;
+        pill.style.transform = `translateX(${left - 4}px)`;
+    }
+
+    btns.forEach(btn => {
+        btn.addEventListener('mouseenter', () => movePillTo(btn));
+        btn.addEventListener('click', () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            movePillTo(btn);
+        });
+    });
+
+    dock.addEventListener('mouseleave', () => {
+        const activeBtn = dock.querySelector('.unlumen-dock-btn.active') || btns[0];
+        movePillTo(activeBtn);
+    });
+
+    // Position initially & on resize
+    setTimeout(() => {
+        const activeBtn = dock.querySelector('.unlumen-dock-btn.active') || btns[0];
+        movePillTo(activeBtn);
+    }, 120);
+    window.addEventListener('resize', () => {
+        const activeBtn = dock.querySelector('.unlumen-dock-btn.active') || btns[0];
+        movePillTo(activeBtn);
+    }, { passive: true });
+}
+
+function initUnlumenTiltCards() {
+    const cards = document.querySelectorAll('.unlumen-tilt-card');
+    cards.forEach(card => {
+        if (card.dataset._unlumenBound === '1') return;
+        card.dataset._unlumenBound = '1';
+        card.addEventListener('mousemove', (e) => {
+            if (typeof _motionAllowed === 'function' && !_motionAllowed()) return;
+            const rect = card.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const px = (x / rect.width) * 100;
+            const py = (y / rect.height) * 100;
+            const rotY = ((x / rect.width) - 0.5) * 10;
+            const rotX = (0.5 - (y / rect.height)) * 10;
+            card.style.setProperty('--glare-x', `${px.toFixed(1)}%`);
+            card.style.setProperty('--glare-y', `${py.toFixed(1)}%`);
+            card.style.transform = `perspective(900px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateZ(4px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+        });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// 14. UNLUMEN UI QUANTUM CURSOR TRAIL
+// ---------------------------------------------------------------------------
+function initQuantumCursorTrail() {
+    let lastTrailTime = 0;
+    window.addEventListener('mousemove', (e) => {
+        if (!window._quantumTrailEnabled) return;
+        if (typeof _motionAllowed === 'function' && !_motionAllowed()) return;
+        const now = performance.now();
+        if (now - lastTrailTime < 28) return;
+        lastTrailTime = now;
+
+        const dot = document.createElement('div');
+        dot.className = 'quantum-trail-dot';
+        dot.style.left = `${e.clientX}px`;
+        dot.style.top = `${e.clientY}px`;
+        document.body.appendChild(dot);
+        setTimeout(() => {
+            if (dot.parentNode) dot.parentNode.removeChild(dot);
+        }, 620);
+    }, { passive: true });
+}
+
+// ---------------------------------------------------------------------------
+// 15. MAGIC UI ANIMATED LIST — LIVE SURVIVOR SIGNAL FEED
+// ---------------------------------------------------------------------------
+const _magicSampleEvents = [
+    { icon: '🌿', title: '4-7-8 Vagal Cadence Completed', sub: 'Anonymous Survivor • HRV Coherence +18%', badge: 'STABILIZED', color: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10' },
+    { icon: '🛡️', title: 'Zero-Knowledge Safety Check-In', sub: 'District Node #14 • AES-256 Verified', badge: 'ENCRYPTED', color: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10' },
+    { icon: '🎧', title: '432Hz Theta Soundscape Active', sub: 'Session Duration: 12m • Cortisol Downshift', badge: 'RESONANCE', color: 'text-purple-300 border-purple-500/30 bg-purple-500/10' },
+    { icon: '🩺', title: 'Counselor Escalation Triage', sub: 'CASE-2026-9041 • Priority Response Assigned', badge: 'URGENT', color: 'text-amber-300 border-amber-500/30 bg-amber-500/10' },
+    { icon: '🤲', title: '5-4-3-2-1 Somatic Anchor Logged', sub: 'Acute Panic Loop Interrupted • Grounded', badge: 'GROUNDED', color: 'text-teal-300 border-teal-500/30 bg-teal-500/10' },
+    { icon: '📞', title: 'Tele-MANAS 14416 Bridge Ping', sub: 'Latency: 14ms • 24/7 Toll-Free Line Ready', badge: 'ONLINE', color: 'text-sky-300 border-sky-500/30 bg-sky-500/10' }
+];
+let _magicEventCursor = 0;
+
+function pushMagicListNotification(customEvent) {
+    const container = document.getElementById('magic-animated-list');
+    if (!container) return;
+    const ev = customEvent || _magicSampleEvents[_magicEventCursor % _magicSampleEvents.length];
+    _magicEventCursor++;
+
+    const item = document.createElement('div');
+    item.className = 'magic-list-item';
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    item.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-slate-900/90 border border-white/10 flex items-center justify-center text-base shrink-0">${ev.icon}</div>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <p class="text-xs font-semibold text-white truncate">${ev.title}</p>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border ${ev.color} shrink-0">${ev.badge}</span>
+            </div>
+            <div class="flex items-center justify-between mt-0.5">
+                <p class="text-[11px] text-slate-400 truncate">${ev.sub}</p>
+                <span class="text-[9px] font-mono text-slate-500 shrink-0">${timeStr}</span>
+            </div>
+        </div>
+    `;
+    container.prepend(item);
+    while (container.children.length > 4) {
+        container.removeChild(container.lastElementChild);
+    }
+}
+window.pushMagicListNotification = pushMagicListNotification;
+
+function initMagicAnimatedList() {
+    const container = document.getElementById('magic-animated-list');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+        pushMagicListNotification();
+    }
+    setInterval(() => {
+        if (document.hidden) return;
+        pushMagicListNotification();
+    }, 9500);
+}
+
+// ---------------------------------------------------------------------------
+// 16. RETRO UI VINTAGE CYBER-TERMINAL LIVE TELEMETRY CONSOLE
+// ---------------------------------------------------------------------------
+function appendRetroTerminalCommand(cmd) {
+    const body = document.getElementById('retro-terminal-body');
+    if (!body) return;
+    const now = new Date().toLocaleTimeString([], { hour12: false });
+    const line = document.createElement('div');
+    let outputText = '';
+    if (cmd === 'DIAGNOSTIC') {
+        outputText = `<span class="text-cyan-400">[${now}]</span> <span class="text-emerald-400">DIAG_OK:</span> All 7 empathetic neural layers nominal • Memory heap: 18.4MB • Zero-knowledge enclave sealed.`;
+    } else if (cmd === 'SYNC_MESH') {
+        outputText = `<span class="text-cyan-400">[${now}]</span> <span class="text-purple-400">MESH_SYNC:</span> 6 omnichannel satellite relays synchronized (14416 / 181 / 112 / SMS / Web / Voice).`;
+    } else {
+        outputText = `<span class="text-cyan-400">[${now}]</span> <span class="text-amber-300">EXEC:</span> ${cmd} — Status: VERIFIED.`;
+    }
+    line.innerHTML = outputText;
+    const cursorLine = body.querySelector('.retro-prompt-line');
+    if (cursorLine) {
+        body.insertBefore(line, cursorLine);
+    } else {
+        body.appendChild(line);
+    }
+    while (body.children.length > 9) {
+        body.removeChild(body.firstElementChild);
+    }
+    body.scrollTop = body.scrollHeight;
+}
+window.appendRetroTerminalCommand = appendRetroTerminalCommand;
+
+// ---------------------------------------------------------------------------
+// 17. SMOOTH UI NEURO-RESILIENCE JOURNAL BLOG MODAL
+// ---------------------------------------------------------------------------
+const _smoothBlogArticles = {
+    'vagal-reset': {
+        icon: '🌿',
+        title: 'How 4-7-8 Breathing Resets Your Vagal Tone in 90 Seconds',
+        badge: 'Neurobiology • 3 Min Read',
+        desc: 'When your nervous system detects threat or emotional trauma, the sympathetic branch triggers an immediate surge of adrenaline and cortisol. By inhaling for 4 seconds, holding for 7 seconds (maximizing alveolar oxygen exchange), and exhaling slowly for 8 seconds, you mechanically stimulate the Vagus Nerve (Cranial Nerve X). This releases acetylcholine directly onto the sinoatrial node, slowing heart rate and restoring prefrontal cortex executive calm within 90 seconds.',
+        action: () => { closeAppleCardModal(); toggleBreathingModal(); }
+    },
+    'sensory-grounding': {
+        icon: '🤲',
+        title: 'Why 5-4-3-2-1 Sensory Grounding Stops Amygdala Hijack',
+        badge: 'Somatic Anchor • 4 Min Read',
+        desc: 'During acute distress or flashbacks, the amygdala overrides rational thought and traps attention inside internal threat loops. The 5-4-3-2-1 protocol forces the thalamus to route exteroceptive sensory data (5 visual details, 4 tactile textures, 3 distinct sounds, 2 scents, 1 taste) directly to the dorsolateral prefrontal cortex, breaking rumination and anchoring your awareness safely in the present room.',
+        action: () => { closeAppleCardModal(); openGroundingDeckModal(); }
+    },
+    'theta-entrainment': {
+        icon: '🎧',
+        title: '432Hz & Theta Binaural Entrainment for Deep Cortisol Recovery',
+        badge: 'Acoustic Therapy • 3 Min Read',
+        desc: 'Auditory frequency-following response (FFR) occurs when phase-locked harmonic sine waves and filtered pink-noise rain spectra gently guide beta-wave hypervigilance (18–30Hz) down toward restorative alpha-theta borders (4–8Hz). Combined with somatic breathing, acoustic entrainment lowers subjective anxiety scores and supports emotional integration without medication.',
+        action: () => { closeAppleCardModal(); openBinauralModal(); }
+    }
+};
+
+function openSmoothBlogModal(topic) {
+    const article = _smoothBlogArticles[topic];
+    if (!article) return;
+    appleCardContent[topic] = article;
+    openAppleCard(topic);
+}
+window.openSmoothBlogModal = openSmoothBlogModal;
+
+// ---------------------------------------------------------------------------
 // BOOT THE FULL 2026 AI UI MASTER SUITE ON LOAD
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
@@ -14740,6 +15086,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try { initScratchCard(); } catch (e) {}
     try { initSankeyParticleStream(); } catch (e) {}
     try { initMagneticButtons(); } catch (e) {}
+    try { initUnlumenMotionDock(); } catch (e) {}
+    try { initUnlumenTiltCards(); } catch (e) {}
+    try { initQuantumCursorTrail(); } catch (e) {}
+    try { initMagicAnimatedList(); } catch (e) {}
 
     // Decode title once
     try {
@@ -14750,3 +15100,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {}
 });
+
