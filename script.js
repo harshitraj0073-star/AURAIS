@@ -14923,14 +14923,14 @@ function initUnlumenTiltCards() {
             const y = e.clientY - rect.top;
             const px = (x / rect.width) * 100;
             const py = (y / rect.height) * 100;
-            const rotY = ((x / rect.width) - 0.5) * 10;
-            const rotX = (0.5 - (y / rect.height)) * 10;
+            const rotY = ((x / rect.width) - 0.5) * 8;
+            const rotX = (0.5 - (y / rect.height)) * 8;
             card.style.setProperty('--glare-x', `${px.toFixed(1)}%`);
             card.style.setProperty('--glare-y', `${py.toFixed(1)}%`);
-            card.style.transform = `perspective(900px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateZ(4px)`;
+            card.style.transform = `perspective(950px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-2px)`;
         });
         card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+            card.style.transform = '';
         });
     });
 }
@@ -15016,7 +15016,7 @@ function initMagicAnimatedList() {
 // ---------------------------------------------------------------------------
 // 16. RETRO UI VINTAGE CYBER-TERMINAL LIVE TELEMETRY CONSOLE
 // ---------------------------------------------------------------------------
-function appendRetroTerminalCommand(cmd) {
+function appendRetroTerminalCommand(cmd = 'DIAGNOSTIC') {
     const body = document.getElementById('retro-terminal-body');
     if (!body) return;
     const now = new Date().toLocaleTimeString([], { hour12: false });
@@ -15135,11 +15135,15 @@ function initFullSpatial3DEngine() {
     let targetNX = 0, targetNY = 0;
     let curNX = 0, curNY = 0;
     let hoveredCard = null;
+    let pointerDown = false;
 
     const CARD_SELECTOR = '.sentient-card:not(.role-pillar), .apple-card-item, .smooth-blog-card, .retro-terminal-window, #channel-panel .grid > div, #channel-panel .grid > button';
 
+    window.addEventListener('mousedown', () => { pointerDown = true; }, { passive: true });
+    window.addEventListener('mouseup', () => { pointerDown = false; }, { passive: true });
+
     window.addEventListener('mousemove', (e) => {
-        if (!window._hyper3DActive || (typeof _motionAllowed === 'function' && !_motionAllowed())) return;
+        if (!window._hyper3DActive || pointerDown || (typeof _motionAllowed === 'function' && !_motionAllowed())) return;
         const w = window.innerWidth || 1;
         const h = window.innerHeight || 1;
         targetNX = (e.clientX / w - 0.5) * 2; // [-1, 1]
@@ -15158,25 +15162,25 @@ function initFullSpatial3DEngine() {
             if (rect.width > 0 && rect.height > 0) {
                 const relX = (e.clientX - rect.left) / rect.width;
                 const relY = (e.clientY - rect.top) / rect.height;
-                const rotY = (relX - 0.5) * 14;
-                const rotX = (0.5 - relY) * 14;
+                const rotY = (relX - 0.5) * 10;
+                const rotX = (0.5 - relY) * 10;
                 card.style.setProperty('--glare-x', `${(relX * 100).toFixed(1)}%`);
                 card.style.setProperty('--glare-y', `${(relY * 100).toFixed(1)}%`);
                 card.style.setProperty('--glare-opacity', '1');
-                card.style.transform = `perspective(950px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateZ(16px)`;
+                card.style.transform = `perspective(950px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-3px)`;
             }
         }
     }, { passive: true });
 
     // Smooth 60fps camera & directional point-light shadow interpolation
     function cameraTick() {
-        if (window._hyper3DActive && (typeof _motionAllowed !== 'function' || _motionAllowed())) {
+        if (window._hyper3DActive && !pointerDown && (typeof _motionAllowed !== 'function' || _motionAllowed())) {
             curNX += (targetNX - curNX) * 0.1;
             curNY += (targetNY - curNY) * 0.1;
 
-            const stageRX = (-curNY * 6.5).toFixed(2);
-            const stageRY = (curNX * 8.5).toFixed(2);
-            const stagePX = (-curNX * 32).toFixed(1);
+            const stageRX = (-curNY * 5.5).toFixed(2);
+            const stageRY = (curNX * 7.5).toFixed(2);
+            const stagePX = (-curNX * 28).toFixed(1);
             const shadowX = (-curNX * 18).toFixed(1);
             const shadowY = (24 - curNY * 14).toFixed(1);
 
@@ -15206,9 +15210,8 @@ function initFullSpatial3DEngine() {
 
             const centerOffset = ((rect.top + rect.height / 2) - vh / 2) / (vh / 2); // [-1, 1]
             const clamped = Math.max(-1.2, Math.min(1.2, centerOffset));
-            const cylinderTiltX = -clamped * 7.5;
-            const cylinderZ = (1 - Math.min(1, Math.abs(clamped))) * 10 - 6;
-            card.style.transform = `perspective(1100px) rotateX(${cylinderTiltX.toFixed(2)}deg) rotateY(${(curNX * 3.5).toFixed(2)}deg) translateZ(${cylinderZ.toFixed(1)}px)`;
+            const cylinderTiltX = -clamped * 5.5;
+            card.style.transform = `perspective(1100px) rotateX(${cylinderTiltX.toFixed(2)}deg) rotateY(${(curNX * 3.0).toFixed(2)}deg)`;
         });
     }
 
