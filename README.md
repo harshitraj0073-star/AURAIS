@@ -2,7 +2,7 @@
 
 A calm, ambient mental-health & emotional-resilience assistant. Dark glass UI, living background engines, breathing exercises, empathetic chat, multi-channel distress monitoring, and role-based dashboards for survivors, clinical staff, and governance.
 
-> 🌍 **Live**: <https://harshitraj0073-star.github.io/nextrails-mains/>
+> 🌍 **Live**: <https://harshitraj0073-star.github.io/NEXORA/>
 >
 > 🖥️ **Local**: [http://localhost:3000](http://localhost:3000)
 
