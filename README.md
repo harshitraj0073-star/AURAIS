@@ -1,12 +1,14 @@
 # AURAIS — Sentient Emotional Resilience & Distress Triage System
 
-[![Live Demo](https://img.shields.io/badge/Live_Application-GitHub_Pages-06b6d4?style=for-the-badge&logo=githubpages&logoColor=white)](https://harshitraj0073-star.github.io/AURAIS/)
-[![PWA Ready](https://img.shields.io/badge/PWA-Offline_First-10b981?style=for-the-badge&logo=pwa&logoColor=white)](https://harshitraj0073-star.github.io/AURAIS/)
-[![Hardware Accelerated](https://img.shields.io/badge/WebGL-10_Ambient_Shaders-8b5cf6?style=for-the-badge)](https://harshitraj0073-star.github.io/AURAIS/)
+[![Vercel Deployment](https://img.shields.io/badge/Live_App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://aurais-ai.vercel.app)
+[![GitHub Pages](https://img.shields.io/badge/Mirror-GitHub_Pages-06b6d4?style=for-the-badge&logo=githubpages&logoColor=white)](https://harshitraj0073-star.github.io/AURAIS/)
+[![PWA Ready](https://img.shields.io/badge/PWA-Offline_First-10b981?style=for-the-badge&logo=pwa&logoColor=white)](https://aurais-ai.vercel.app)
+[![Hardware Accelerated](https://img.shields.io/badge/WebGL-10_Ambient_Shaders-8b5cf6?style=for-the-badge)](https://aurais-ai.vercel.app)
 
 **AURAIS** (pronounced *aw-RAY-iss*, from *Aura* + *Aegis*) is an autonomous, sentient mental-health monitoring and crisis-intervention platform. Engineered by **Harshit Raj** as a production-grade personal project.
 
-> 🌍 **Live Application**: [https://harshitraj0073-star.github.io/AURAIS/](https://harshitraj0073-star.github.io/AURAIS/)  
+> 🌐 **Production Vercel**: [https://aurais-ai.vercel.app](https://aurais-ai.vercel.app)  
+> 🌍 **GitHub Pages Mirror**: [https://harshitraj0073-star.github.io/AURAIS/](https://harshitraj0073-star.github.io/AURAIS/)  
 > 💻 **Local Development**: `python3 -m http.server 3000` -> [http://localhost:3000](http://localhost:3000)  
 > 📂 **Repository**: [https://github.com/harshitraj0073-star/AURAIS](https://github.com/harshitraj0073-star/AURAIS)
 
