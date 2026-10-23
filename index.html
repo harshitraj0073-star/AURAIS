@@ -298,7 +298,7 @@
             <span class="retro-cyber-badge hidden sm:inline-flex ml-2">v4.2 SENTIENT</span>
         </div>
 
-        <div id="nav-center" class="hidden lg:flex items-center gap-2">
+        <div id="nav-center" class="flex items-center gap-1 sm:gap-2">
             <!-- Back Button (shown when not on intro) -->
             <button id="nav-back-btn" onclick="goBackToIntro()" class="btn btn-ghost btn-sm mr-2 hidden">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -310,20 +310,20 @@
             <!-- UNLUMEN UI: Motion Navigation Dock with Morphing Spring Pill -->
             <div id="aurais-motion-dock" class="unlumen-motion-dock">
                 <div id="unlumen-dock-pill" class="unlumen-dock-pill"></div>
-                <button type="button" class="unlumen-dock-btn active" data-dock-nav="intro" onclick="goBackToIntro()">
-                    <span>✨</span><span>Awaken</span>
+                <button type="button" class="unlumen-dock-btn active" data-dock-nav="intro" onclick="goBackToIntro()" title="Awaken Intro">
+                    <span>✨</span><span class="hidden md:inline">Awaken</span>
                 </button>
-                <button type="button" class="unlumen-dock-btn" data-dock-nav="victim" onclick="loginAsRole('victim')">
-                    <span>🌿</span><span>Survivor Sanctuary</span>
+                <button type="button" class="unlumen-dock-btn" data-dock-nav="victim" onclick="loginAsRole('victim')" title="Survivor Sanctuary">
+                    <span>🌿</span><span class="hidden sm:inline">Survivor</span>
                 </button>
-                <button type="button" class="unlumen-dock-btn" data-dock-nav="counselor" onclick="loginAsRole('counselor')">
-                    <span>🩺</span><span>Clinical Cockpit</span>
+                <button type="button" class="unlumen-dock-btn" data-dock-nav="counselor" onclick="loginAsRole('counselor')" title="Clinical Cockpit">
+                    <span>🩺</span><span class="hidden sm:inline">Clinical</span>
                 </button>
-                <button type="button" class="unlumen-dock-btn" data-dock-nav="admin" onclick="loginAsRole('admin')">
-                    <span>🏛️</span><span>Governance</span>
+                <button type="button" class="unlumen-dock-btn" data-dock-nav="admin" onclick="loginAsRole('admin')" title="Governance Telemetry">
+                    <span>🏛️</span><span class="hidden md:inline">Governance</span>
                 </button>
-                <button type="button" class="unlumen-dock-btn" data-dock-nav="sound" onclick="openBinauralModal()">
-                    <span>🎧</span><span>432Hz Synth</span>
+                <button type="button" class="unlumen-dock-btn" data-dock-nav="sound" onclick="openBinauralModal()" title="432Hz Sound Studio">
+                    <span>🎧</span><span class="hidden lg:inline">432Hz</span>
                 </button>
             </div>
         </div>

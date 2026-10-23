@@ -3492,6 +3492,12 @@ body.lite-motion .role-pillar::after {
   transition: color 0.2s ease, transform 0.2s ease;
   white-space: nowrap;
 }
+@media (max-width: 640px) {
+  .unlumen-dock-btn {
+    padding: 6px 8px;
+    gap: 3px;
+  }
+}
 .unlumen-dock-btn:hover,
 .unlumen-dock-btn.active {
   color: #ffffff;
